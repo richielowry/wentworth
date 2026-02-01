@@ -159,9 +159,24 @@
   }
 
   function addPlayer() {
-    const name = document.getElementById('newPlayerName').value.trim();
-    if (!name) return;
+    const input = document.getElementById('newPlayerName');
+    const name = input.value.trim();
+    if (!name) {
+      alert('Enter a player name');
+      return;
+    }
+
+    if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+      alert('Player already exists');
+      return;
+    }
+
     players.push({ name, stats: { games: 0, wins: 0, darts: 0 } });
+    savePlayers();
+    renderPlayers();
+
+    input.value = '';
+  } });
     savePlayers();
     renderPlayers();
     document.getElementById('newPlayerName').value = '';
