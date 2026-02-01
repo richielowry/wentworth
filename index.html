@@ -104,11 +104,11 @@
 <!-- MATCH PAGE -->
 <div id="match" class="page">
   <div class="scoreboard">
-    <div class="player">
+    <div class="player" id="playerBox">
       <div id="p1Name"></div>
       <div id="p1Score" class="score"></div>
     </div>
-    <div class="player">
+    <div class="player" id="playerBox">
       <div id="p2Name"></div>
       <div id="p2Score" class="score"></div>
     </div>
@@ -116,16 +116,21 @@
 
   <div class="log" id="turnLog"></div>
 
-  <div class="keypad">
-    <button onclick="enterScore(60)">60</button>
-    <button onclick="enterScore(100)">100</button>
-    <button onclick="enterScore(140)">140</button>
-    <button onclick="enterScore(180)">180</button>
-    <button onclick="enterScore(45)">45</button>
-    <button onclick="enterScore(26)">26</button>
-    <button onclick="enterScore(0)">0</button>
-    <button onclick="undoLast()">Undo</button>
-    <button class="danger" onclick="endMatch()">End</button>
+  <div class="keypad" id="keypad">
+    <input id="scoreInput" placeholder="Enter score" readonly />
+    <button onclick="pressKey(1)">1</button>
+    <button onclick="pressKey(2)">2</button>
+    <button onclick="pressKey(3)">3</button>
+    <button onclick="pressKey(4)">4</button>
+    <button onclick="pressKey(5)">5</button>
+    <button onclick="pressKey(6)">6</button>
+    <button onclick="pressKey(7)">7</button>
+    <button onclick="pressKey(8)">8</button>
+    <button onclick="pressKey(9)">9</button>
+    <button onclick="pressKey(0)">0</button>
+    <button onclick="clearInput()">CLR</button>
+    <button onclick="submitScore()">ENTER</button>
+    <button class="danger" onclick="endMatch()">END</button>
   </div>
 </div>
 
@@ -184,10 +189,44 @@
   function updateScores() {
     document.getElementById('p1Score').textContent = game.scores[0];
     document.getElementById('p2Score').textContent = game.scores[1];
+
+    const players = document.querySelectorAll('.player');
+    players.forEach((p, i) => {
+      if (i === game.turn) {
+        p.style.opacity = '1';
+        p.style.border = '2px solid #2ecc71';
+      } else {
+        p.style.opacity = '0.4';
+        p.style.border = 'none';
+      }
+    });
+
+    renderLog();
+  }() {
+    document.getElementById('p1Score').textContent = game.scores[0];
+    document.getElementById('p2Score').textContent = game.scores[1];
     renderLog();
   }
 
-  function enterScore(value) {
+  let inputValue = '';
+
+function pressKey(num) {
+  inputValue += num;
+  document.getElementById('scoreInput').value = inputValue;
+}
+
+function clearInput() {
+  inputValue = '';
+  document.getElementById('scoreInput').value = '';
+}
+
+function submitScore() {
+  if (!inputValue) return;
+  enterScore(parseInt(inputValue));
+  clearInput();
+}
+
+function enterScore(value) {
     const idx = game.turn;
     const before = game.scores[idx];
     const after = before - value;
