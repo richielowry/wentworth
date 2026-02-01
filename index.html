@@ -98,7 +98,7 @@
 
   <h2>Create Player</h2>
   <input id="newPlayerName" placeholder="Player name" />
-  <button onclick="addPlayer()">Add Player</button>
+  <button id="addPlayerBtn">Add Player</button>
 </div>
 
 <!-- MATCH PAGE -->
@@ -173,9 +173,13 @@
 
     players.push({ name, stats: { games: 0, wins: 0, darts: 0 } });
     savePlayers();
-    window.onload = function() {
+    document.addEventListener('DOMContentLoaded', function () {
     renderPlayers();
-  };
+    const btn = document.getElementById('addPlayerBtn');
+    if (btn) {
+      btn.addEventListener('click', addPlayer);
+    }
+  });
 
     input.value = '';
   } });
