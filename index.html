@@ -143,6 +143,41 @@
     const idx = game.turn;
     const before = game.scores[idx];
     const after = before - value;
-    if(after < 0){ game.log.push(`${game.players[idx]} bust (${value})`); }
+
+    if(after < 0){
+      game.log.push(`${game.players[idx]} bust (${value})`);
+    } else if(after === 0){
+      const d = prompt('Checkout! Which dart? 1 / 2 / 3');
+      game.log.push(`${game.players[idx]} wins (checkout dart ${d})`);
+      alert(`${game.players[idx]} wins the leg!`);
+      endMatch();
+      return;
+    } else {
+      game.scores[idx] = after;
+      game.log.push(`${game.players[idx]} scored ${value}`);
+    }
+
+    game.turn = game.turn === 0 ? 1 : 0;
+    clearInput();
+    updateScores();
+  }
     else if(after === 0){ const d = prompt('Checkout! Which dart? 1 / 2 / 3'); game.log.push(`${game.players[idx]} wins (checkout dart ${d})`); alert(`${game.players[idx]} wins the leg!`); endMatch(); return; }
-    else { game.scores[idx] = after; game.log.push(`${game.players[id
+    else { game.scores[idx] = after; game.log.push(`${game.players[idx]} scored ${value}`); }
+    game.turn = game.turn===0?1:0; clearInput(); updateScores();
+  }
+
+  function endMatch(){ game=null; showPage('home'); }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    loadPlayers(); renderPlayers();
+    qs('addPlayerBtn').addEventListener('click', addPlayer);
+    qs('startBtn').addEventListener('click', startGame);
+    qs('clrBtn').addEventListener('click', clearInput);
+    qs('enterBtn').addEventListener('click', submitScore);
+    qs('endBtn').addEventListener('click', endMatch);
+    document.querySelectorAll('[data-num]').forEach(b=>b.addEventListener('click', ()=>pressNum(b.dataset.num)));
+  });
+})();
+</script>
+</body>
+</html>
