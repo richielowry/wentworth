@@ -173,7 +173,9 @@
 
     players.push({ name, stats: { games: 0, wins: 0, darts: 0 } });
     savePlayers();
+    window.onload = function() {
     renderPlayers();
+  };
 
     input.value = '';
   } });
@@ -241,7 +243,7 @@ function submitScore() {
   clearInput();
 }
 
-function enterScore(value) {
+function enterScore(value)(value) {
     const idx = game.turn;
     const before = game.scores[idx];
     const after = before - value;
