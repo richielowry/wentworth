@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Darts Scorer MVP</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #fff;
+    }
+    header {
+      padding: 1rem;
+      text-align: center;
+      background: #1e1e1e;
+      font-size: 1.4rem;
+    }
+    .page {
+      display: none;
+      padding: 1rem;
+    }
+    .page.active {
+      display: block;
+    }
+    select, input, button {
+      font-size: 1.1rem;
+      padding: 0.5rem;
+      margin: 0.3rem 0;
+      width: 100%;
+    }
+    button {
+      background: #2ecc71;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      border-radius: 6px;
+    }
+    .danger {
+      background: #e74c3c;
+      color: #fff;
+    }
+    .scoreboard {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .player {
+      width: 40%;
+      text-align: center;
+    }
+    .score {
+      font-size: 3rem;
+      font-weight: bold;
+    }
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .log {
+      max-height: 200px;
+      overflow-y: auto;
+      background: #1e1e1e;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .log div {
+      border-bottom: 1px solid #333;
+      padding: 0.3rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>Darts Scorer – MVP</header>
+
+<!-- HOME PAGE -->
+<div id="home" class="page active">
+  <h2>New Game</h2>
+
+  <label>Player 1</label>
+  <select id="player1"></select>
+
+  <label>Player 2</label>
+  <select id="player2"></select>
+
+  <label>Game</label>
+  <select id="gameType">
+    <option value="501">501</option>
+    <option value="301">301</option>
+  </select>
+
+  <button onclick="startGame()">Start Match</button>
+
+  <h2>Create Player</h2>
+  <input id="newPlayerName" placeholder="Player name" />
+  <button onclick="addPlayer()">Add Player</button>
+</div>
+
+<!-- MATCH PAGE -->
+<div id="match" class="page">
+  <div class="scoreboard">
+    <div class="player">
+      <div id="p1Name"></div>
+      <div id="p1Score" class="score"></div>
+    </div>
+    <div class="player">
+      <div id="p2Name"></div>
+      <div id="p2Score" class="score"></div>
+    </div>
+  </div>
+
+  <div class="log" id="turnLog"></div>
+
+  <div class="keypad">
+    <button onclick="enterScore(60)">60</button>
+    <button onclick="enterScore(100)">100</button>
+    <button onclick="enterScore(140)">140</button>
+    <button onclick="enterScore(180)">180</button>
+    <button onclick="enterScore(45)">45</button>
+    <button onclick="enterScore(26)">26</button>
+    <button onclick="enterScore(0)">0</button>
+    <button onclick="undoLast()">Undo</button>
+    <button class="danger" onclick="endMatch()">End</button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'dartsPlayers';
+  let players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+  let game = null;
+
+  function savePlayers() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+  }
+
+  function renderPlayers() {
+    const p1 = document.getElementById('player1');
+    const p2 = document.getElementById('player2');
+    p1.innerHTML = p2.innerHTML = '';
+    players.forEach(p => {
+      const o1 = document.createElement('option');
+      o1.value = p.name;
+      o1.textContent = p.name;
+      const o2 = o1.cloneNode(true);
+      p1.appendChild(o1);
+      p2.appendChild(o2);
+    });
+  }
+
+  function addPlayer() {
+    const name = document.getElementById('newPlayerName').value.trim();
+    if (!name) return;
+    players.push({ name, stats: { games: 0, wins: 0, darts: 0 } });
+    savePlayers();
+    renderPlayers();
+    document.getElementById('newPlayerName').value = '';
+  }
+
+  function startGame() {
+    const p1 = document.getElementById('player1').value;
+    const p2 = document.getElementById('player2').value;
+    const startScore = parseInt(document.getElementById('gameType').value);
+    if (!p1 || !p2 || p1 === p2) return alert('Select two different players');
+
+    game = {
+      players: [p1, p2],
+      scores: [startScore, startScore],
+      turn: 0,
+      log: []
+    };
+
+    document.getElementById('p1Name').textContent = p1;
+    document.getElementById('p2Name').textContent = p2;
+    updateScores();
+    showPage('match');
+  }
+
+  function updateScores() {
+    document.getElementById('p1Score').textContent = game.scores[0];
+    document.getElementById('p2Score').textContent = game.scores[1];
+    renderLog();
+  }
+
+  function enterScore(value) {
+    const idx = game.turn;
+    const before = game.scores[idx];
+    const after = before - value;
+
+    if (after < 0) {
+      game.log.push(`${game.players[idx]} bust (${value})`);
+    } else if (after === 0) {
+      const darts = prompt('Checkout! Which dart? 1 / 2 / 3');
+      game.log.push(`${game.players[idx]} wins (checkout dart ${darts})`);
+      alert(`${game.players[idx]} wins the leg!`);
+      endMatch();
+      return;
+    } else {
+      game.scores[idx] = after;
+      game.log.push(`${game.players[idx]} scored ${value}`);
+    }
+
+    game.turn = game.turn === 0 ? 1 : 0;
+    updateScores();
+  }
+
+  function renderLog() {
+    const log = document.getElementById('turnLog');
+    log.innerHTML = '';
+    game.log.slice().reverse().forEach(l => {
+      const d = document.createElement('div');
+      d.textContent = l;
+      log.appendChild(d);
+    });
+  }
+
+  function undoLast() {
+    if (!game.log.length) return;
+    game.log.pop();
+    alert('Undo is basic in MVP – restart leg if needed');
+    renderLog();
+  }
+
+  function endMatch() {
+    game = null;
+    showPage('home');
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  renderPlayers();
+</script>
+
+</body>
+</html>
