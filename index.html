@@ -77,69 +77,121 @@
   let game = null;
   let inputValue = '';
 
+  function qs(id){ return document.getElementById(id); }
+
   function loadPlayers(){
     try {
       players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch(e){ players = []; }
+    } catch {
+      players = [];
+    }
   }
-  function savePlayers(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(players)); }
 
-  function qs(id){ return document.getElementById(id); }
+  function savePlayers(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+  }
 
   function renderPlayers(){
     const p1 = qs('player1');
     const p2 = qs('player2');
-    p1.innerHTML = ''; p2.innerHTML = '';
+    p1.innerHTML = '';
+    p2.innerHTML = '';
+
     players.forEach(p => {
-      const o1 = document.createElement('option'); o1.value = p.name; o1.textContent = p.name;
-      const o2 = document.createElement('option'); o2.value = p.name; o2.textContent = p.name;
-      p1.appendChild(o1); p2.appendChild(o2);
+      const o1 = document.createElement('option');
+      const o2 = document.createElement('option');
+      o1.value = o2.value = p.name;
+      o1.textContent = o2.textContent = p.name;
+      p1.appendChild(o1);
+      p2.appendChild(o2);
     });
   }
 
   function addPlayer(){
     const input = qs('newPlayerName');
     const name = input.value.trim();
-    if(!name){ alert('Enter a player name'); return; }
-    if(players.some(p => p.name.toLowerCase() === name.toLowerCase())){ alert('Player already exists'); return; }
+
+    if(!name){
+      alert('Enter a player name');
+      return;
+    }
+
+    if(players.some(p => p.name.toLowerCase() === name.toLowerCase())){
+      alert('Player already exists');
+      return;
+    }
+
     players.push({ name, stats:{} });
     savePlayers();
     renderPlayers();
     input.value = '';
   }
 
-  function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); qs(id).classList.add('active'); }
+  function showPage(id){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    qs(id).classList.add('active');
+  }
 
   function startGame(){
     const p1 = qs('player1').value;
     const p2 = qs('player2').value;
-    const start = parseInt(qs('gameType').value,10);
-    if(!p1 || !p2 || p1===p2){ alert('Select two different players'); return; }
-    game = { players:[p1,p2], scores:[start,start], turn:0, log:[] };
-    qs('p1Name').textContent = p1; qs('p2Name').textContent = p2;
-    updateScores(); showPage('match');
+    const start = parseInt(qs('gameType').value, 10);
+
+    if(!p1 || !p2 || p1 === p2){
+      alert('Select two different players');
+      return;
+    }
+
+    game = {
+      players: [p1, p2],
+      scores: [start, start],
+      turn: 0,
+      log: []
+    };
+
+    qs('p1Name').textContent = p1;
+    qs('p2Name').textContent = p2;
+
+    updateScores();
+    showPage('match');
   }
 
   function updateScores(){
-    qs('p1Score').textContent = game.scores[0]; qs('p2Score').textContent = game.scores[1];
-    qs('p1Box').classList.toggle('active', game.turn===0);
-    qs('p1Box').classList.toggle('inactive', game.turn!==0);
-    qs('p2Box').classList.toggle('active', game.turn===1);
-    qs('p2Box').classList.toggle('inactive', game.turn!==1);
+    qs('p1Score').textContent = game.scores[0];
+    qs('p2Score').textContent = game.scores[1];
+
+    qs('p1Box').classList.toggle('active', game.turn === 0);
+    qs('p1Box').classList.toggle('inactive', game.turn !== 0);
+    qs('p2Box').classList.toggle('active', game.turn === 1);
+    qs('p2Box').classList.toggle('inactive', game.turn !== 1);
+
     renderLog();
   }
 
   function renderLog(){
-    const log = qs('turnLog'); log.innerHTML='';
-    game.log.slice().reverse().forEach(t=>{ const d=document.createElement('div'); d.textContent=t; log.appendChild(d); });
+    const log = qs('turnLog');
+    log.innerHTML = '';
+    game.log.slice().reverse().forEach(t => {
+      const d = document.createElement('div');
+      d.textContent = t;
+      log.appendChild(d);
+    });
   }
 
-  function pressNum(n){ inputValue += n; qs('scoreInput').value = inputValue; }
-  function clearInput(){ inputValue=''; qs('scoreInput').value=''; }
+  function pressNum(n){
+    inputValue += n;
+    qs('scoreInput').value = inputValue;
+  }
+
+  function clearInput(){
+    inputValue = '';
+    qs('scoreInput').value = '';
+  }
 
   function submitScore(){
     if(!inputValue) return;
-    const value = parseInt(inputValue,10);
+
+    const value = parseInt(inputValue, 10);
     const idx = game.turn;
     const before = game.scores[idx];
     const after = before - value;
@@ -161,21 +213,25 @@
     clearInput();
     updateScores();
   }
-    else if(after === 0){ const d = prompt('Checkout! Which dart? 1 / 2 / 3'); game.log.push(`${game.players[idx]} wins (checkout dart ${d})`); alert(`${game.players[idx]} wins the leg!`); endMatch(); return; }
-    else { game.scores[idx] = after; game.log.push(`${game.players[idx]} scored ${value}`); }
-    game.turn = game.turn===0?1:0; clearInput(); updateScores();
+
+  function endMatch(){
+    game = null;
+    showPage('home');
   }
 
-  function endMatch(){ game=null; showPage('home'); }
+  document.addEventListener('DOMContentLoaded', () => {
+    loadPlayers();
+    renderPlayers();
 
-  document.addEventListener('DOMContentLoaded', function(){
-    loadPlayers(); renderPlayers();
     qs('addPlayerBtn').addEventListener('click', addPlayer);
     qs('startBtn').addEventListener('click', startGame);
     qs('clrBtn').addEventListener('click', clearInput);
     qs('enterBtn').addEventListener('click', submitScore);
     qs('endBtn').addEventListener('click', endMatch);
-    document.querySelectorAll('[data-num]').forEach(b=>b.addEventListener('click', ()=>pressNum(b.dataset.num)));
+
+    document.querySelectorAll('[data-num]').forEach(b =>
+      b.addEventListener('click', () => pressNum(b.dataset.num))
+    );
   });
 })();
 </script>
