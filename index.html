@@ -37,6 +37,9 @@
     .page { display: none; padding: 1rem; max-width: 800px; margin: 0 auto; }
     .page.active { display: block; }
     
+    /* Match page uses full width for 3-column layout */
+    #matchPage.active { display: block; max-width: 100%; padding: 0.5rem; }
+    
     h2 { margin: 1.5rem 0 1rem; color: var(--accent); border-bottom: 1px solid var(--secondary); padding-bottom: 0.5rem; }
     h3 { margin: 1rem 0 0.5rem; color: var(--light); }
     
@@ -264,49 +267,304 @@
     .year-selector button { width: auto; padding: 0.5rem 1rem; }
     .year-selector span { font-size: 1.5rem; font-weight: 700; }
     
-    /* Webcam */
-    .webcam-container {
+    /* 3-Column Match Layout - iPad Friendly */
+    .match-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 0.5rem;
+      height: calc(100vh - 60px);
+      padding: 0.5rem;
+    }
+    
+    .webcam-column {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
+      flex-direction: column;
+      min-width: 0;
     }
     
     .webcam-box {
-      flex: 1;
       background: var(--secondary);
       border-radius: 8px;
       overflow: hidden;
-      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .webcam-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--primary);
+      padding: 0.4rem 0.6rem;
+    }
+    
+    .webcam-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .webcam-toggle-btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      width: auto;
+      margin: 0;
+      background: var(--accent);
+    }
+    
+    .webcam-toggle-btn.active {
+      background: var(--danger);
+    }
+    
+    .webcam-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
     
     .webcam-box video {
       width: 100%;
-      height: 150px;
+      flex: 1;
       object-fit: cover;
       background: #000;
     }
     
-    .webcam-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0,0,0,0.7);
-      padding: 0.3rem;
+    .webcam-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--dark);
+      color: #999;
+      font-size: 0.9rem;
       text-align: center;
-      font-size: 0.8rem;
+      padding: 1rem;
+      line-height: 1.5;
     }
     
-    .webcam-toggle {
-      margin-bottom: 1rem;
+    .webcam-placeholder small {
+      color: #777;
+      margin-top: 0.3rem;
     }
     
-    /* Responsive */
+    .scoring-column {
+      display: flex;
+      flex-direction: column;
+      max-width: 450px;
+      margin: 0 auto;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+    
+    .scoring-top {
+      flex-shrink: 0;
+    }
+    
+    .score-history {
+      flex: 1;
+      overflow-y: auto;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      min-height: 100px;
+    }
+    
+    .keypad {
+      flex-shrink: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.3rem;
+    }
+    
+    .keypad button {
+      padding: 0.8rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    
+    #scoreDisplay {
+      grid-column: 1 / -1;
+      background: var(--secondary);
+      color: #fff;
+      font-size: 1.8rem;
+      text-align: center;
+      padding: 0.6rem;
+      border-radius: 6px;
+      min-height: 50px;
+    }
+    
+    .action-bar {
+      display: flex;
+      gap: 0.3rem;
+      margin-bottom: 0.5rem;
+    }
+    .action-bar button { 
+      flex: 1; 
+      padding: 0.5rem; 
+      font-size: 0.8rem; 
+    }
+    
+    .match-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--primary);
+      padding: 0.5rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .match-header .player-name {
+      font-weight: 700;
+      font-size: 1rem;
+      max-width: 35%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .match-header .match-score {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    
+    /* iPad Portrait (768px) and Landscape (1024px) */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .match-layout {
+        grid-template-columns: 1fr 1.5fr 1fr;
+      }
+      .keypad button {
+        padding: 1rem;
+        font-size: 1.4rem;
+      }
+      #scoreDisplay {
+        font-size: 2rem;
+        padding: 0.8rem;
+      }
+    }
+    
+    /* Small tablets and large phones */
+    @media (max-width: 767px) {
+      .match-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        height: auto;
+        min-height: calc(100vh - 60px);
+      }
+      .webcam-column { 
+        flex-direction: row;
+        height: 120px;
+      }
+      .webcam-column.left { order: 1; }
+      .scoring-column { order: 2; height: auto; }
+      .webcam-column.right { order: 3; }
+      .webcam-box { min-height: 120px; }
+    }
+    
+    /* Small phones */
     @media (max-width: 500px) {
-      .match-header .player-name { font-size: 0.9rem; }
-      .match-header .match-score { font-size: 1.2rem; }
-      .keypad button { padding: 0.8rem; font-size: 1.1rem; }
-      .webcam-container { flex-direction: column; }
+      .match-header .player-name { font-size: 0.85rem; }
+      .match-header .match-score { font-size: 1.1rem; }
+      .keypad button { padding: 0.7rem; font-size: 1rem; }
+      .action-bar button { font-size: 0.7rem; padding: 0.4rem; }
+      .webcam-column { height: 100px; }
+    }
+    
+    /* Practice Page Styles */
+    .practice-layout {
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem;
+      height: calc(100vh - 60px);
+    }
+    
+    .practice-column {
+      display: flex;
+      flex-direction: column;
+      max-width: 500px;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+    
+    .practice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--primary);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .practice-header .player-name {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    
+    .practice-info {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .practice-score-display {
+      background: var(--secondary);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .practice-score-display .big-score {
+      display: block;
+      font-size: 4rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+    
+    .practice-score-display .score-label {
+      display: block;
+      font-size: 0.9rem;
+      color: #999;
+      margin-top: 0.3rem;
+    }
+    
+    .practice-stats-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .practice-stat {
+      flex: 1;
+      background: var(--secondary);
+      border-radius: 8px;
+      padding: 0.6rem;
+      text-align: center;
+    }
+    
+    .practice-stat .stat-label {
+      display: block;
+      font-size: 0.75rem;
+      color: #999;
+      margin-bottom: 0.2rem;
+    }
+    
+    .practice-stat .stat-value {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    @media (max-width: 500px) {
+      .practice-score-display .big-score { font-size: 3rem; }
+      .practice-score-display { padding: 1rem; }
+      .practice-stat .stat-value { font-size: 1rem; }
     }
   </style>
 </head>
@@ -316,7 +574,20 @@
 
 <!-- HOME PAGE -->
 <div id="homePage" class="page active">
-  <h2>New Game</h2>
+  <h2>Practice Mode</h2>
+  
+  <label for="practicePlayerSelect">Player</label>
+  <select id="practicePlayerSelect" aria-label="Select Player for Practice"></select>
+  
+  <label for="practiceGameTypeSelect">Game Type</label>
+  <select id="practiceGameTypeSelect" aria-label="Select Practice Game Type">
+    <option value="501">501</option>
+    <option value="301">301</option>
+  </select>
+  
+  <button id="startPracticeBtn" class="btn-success" style="margin-top: 1rem;">Start Practice</button>
+  
+  <h2>New Match</h2>
   
   <label for="player1Select">Player 1</label>
   <select id="player1Select" aria-label="Select Player 1"></select>
@@ -361,63 +632,192 @@
 
 <!-- MATCH PAGE -->
 <div id="matchPage" class="page">
-  <div class="action-bar">
-    <button id="newLegBtn" class="btn-secondary">New Leg</button>
-    <button id="finishBtn" class="btn-warning">Finish</button>
-    <button id="statsBtn" class="btn-secondary">Stats</button>
-    <button id="menuBtn" class="btn-secondary">Menu</button>
-  </div>
-  
-  <div class="webcam-toggle">
-    <button id="toggleWebcamBtn" class="btn-secondary">Enable Webcams</button>
-  </div>
-  
-  <div id="webcamContainer" class="webcam-container" style="display: none;">
-    <div class="webcam-box">
-      <video id="webcam1" autoplay playsinline muted></video>
-      <div class="webcam-label" id="webcam1Label">Player 1</div>
+  <div class="match-layout">
+    <!-- Left Webcam Column - Player 1 -->
+    <div class="webcam-column left">
+      <div class="webcam-box" id="webcamBox1">
+        <div class="webcam-header">
+          <span class="webcam-label" id="webcam1Label">Player 1</span>
+          <button id="toggleWebcam1Btn" class="webcam-toggle-btn" aria-label="Toggle webcam for Player 1">Enable</button>
+        </div>
+        <div class="webcam-content">
+          <video id="webcam1" autoplay playsinline muted style="display: none;"></video>
+          <div class="webcam-placeholder" id="webcam1Placeholder">
+            <span>Webcam Off</span>
+            <small>Click "Enable" above</small>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="webcam-box">
-      <video id="webcam2" autoplay playsinline muted></video>
-      <div class="webcam-label" id="webcam2Label">Player 2</div>
+    
+    <!-- Center Scoring Column -->
+    <div class="scoring-column">
+      <div class="scoring-top">
+        <div class="action-bar">
+          <button id="newLegBtn" class="btn-secondary">New Leg</button>
+          <button id="finishBtn" class="btn-warning">Finish</button>
+          <button id="statsBtn" class="btn-secondary">Stats</button>
+          <button id="menuBtn" class="btn-secondary">Menu</button>
+        </div>
+        
+        <div class="match-header">
+          <span class="player-name" id="p1NameDisplay"></span>
+          <span class="match-score" id="matchScoreDisplay">0 - 0</span>
+          <span class="player-name" id="p2NameDisplay"></span>
+        </div>
+      </div>
+      
+      <div class="score-history" id="scoreHistory">
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th>Scored</th>
+              <th>To Go</th>
+              <th>Darts</th>
+              <th>To Go</th>
+              <th>Scored</th>
+            </tr>
+          </thead>
+          <tbody id="scoreTableBody"></tbody>
+        </table>
+      </div>
+      
+      <div class="keypad">
+        <div id="scoreDisplay" aria-live="polite"></div>
+        <button data-num="1">1</button>
+        <button data-num="2">2</button>
+        <button data-num="3">3</button>
+        <button data-num="4">4</button>
+        <button data-num="5">5</button>
+        <button data-num="6">6</button>
+        <button data-num="7">7</button>
+        <button data-num="8">8</button>
+        <button data-num="9">9</button>
+        <button id="backspaceBtn" class="btn-secondary" aria-label="Backspace">&#9003;</button>
+        <button data-num="0">0</button>
+        <button id="enterBtn" class="btn-success">Enter</button>
+      </div>
+    </div>
+    
+    <!-- Right Webcam Column - Player 2 -->
+    <div class="webcam-column right">
+      <div class="webcam-box" id="webcamBox2">
+        <div class="webcam-header">
+          <span class="webcam-label" id="webcam2Label">Player 2</span>
+          <button id="toggleWebcam2Btn" class="webcam-toggle-btn" aria-label="Toggle webcam for Player 2">Enable</button>
+        </div>
+        <div class="webcam-content">
+          <video id="webcam2" autoplay playsinline muted style="display: none;"></video>
+          <div class="webcam-placeholder" id="webcam2Placeholder">
+            <span>Webcam Off</span>
+            <small>Click "Enable" above</small>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  
-  <div class="match-header">
-    <span class="player-name" id="p1NameDisplay"></span>
-    <span class="match-score" id="matchScoreDisplay">0 - 0</span>
-    <span class="player-name" id="p2NameDisplay"></span>
+</div>
+
+<!-- PRACTICE PAGE -->
+<div id="practicePage" class="page">
+  <div class="practice-layout">
+    <div class="practice-column">
+      <div class="scoring-top">
+        <div class="action-bar">
+          <button id="practiceNewLegBtn" class="btn-secondary">New Leg</button>
+          <button id="practiceFinishBtn" class="btn-warning">Finish</button>
+          <button id="practiceStatsBtn" class="btn-secondary">Stats</button>
+          <button id="practiceMenuBtn" class="btn-secondary">Menu</button>
+        </div>
+        
+        <div class="practice-header">
+          <span class="player-name" id="practicePlayerName"></span>
+          <span class="practice-info">Practice</span>
+        </div>
+        
+        <div class="practice-score-display">
+          <span class="big-score" id="practiceToGo">501</span>
+          <span class="score-label">To Go</span>
+        </div>
+        
+        <div class="practice-stats-row">
+          <div class="practice-stat">
+            <span class="stat-label">Darts</span>
+            <span class="stat-value" id="practiceDartCount">0</span>
+          </div>
+          <div class="practice-stat">
+            <span class="stat-label">Avg</span>
+            <span class="stat-value" id="practiceAvg">0.00</span>
+          </div>
+          <div class="practice-stat">
+            <span class="stat-label">Legs</span>
+            <span class="stat-value" id="practiceLegsWon">0</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="score-history" id="practiceScoreHistory">
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th>Scored</th>
+              <th>To Go</th>
+              <th>Darts</th>
+            </tr>
+          </thead>
+          <tbody id="practiceScoreTableBody"></tbody>
+        </table>
+      </div>
+      
+      <div class="keypad">
+        <div id="practiceScoreDisplay" aria-live="polite"></div>
+        <button class="practice-num" data-num="1">1</button>
+        <button class="practice-num" data-num="2">2</button>
+        <button class="practice-num" data-num="3">3</button>
+        <button class="practice-num" data-num="4">4</button>
+        <button class="practice-num" data-num="5">5</button>
+        <button class="practice-num" data-num="6">6</button>
+        <button class="practice-num" data-num="7">7</button>
+        <button class="practice-num" data-num="8">8</button>
+        <button class="practice-num" data-num="9">9</button>
+        <button id="practiceBackspaceBtn" class="btn-secondary" aria-label="Backspace">&#9003;</button>
+        <button class="practice-num" data-num="0">0</button>
+        <button id="practiceEnterBtn" class="btn-success">Enter</button>
+      </div>
+    </div>
   </div>
-  
-  <div class="score-history" id="scoreHistory">
-    <table class="score-table">
-      <thead>
-        <tr>
-          <th>Scored</th>
-          <th>To Go</th>
-          <th>Darts</th>
-          <th>To Go</th>
-          <th>Scored</th>
-        </tr>
-      </thead>
-      <tbody id="scoreTableBody"></tbody>
-    </table>
+</div>
+
+<!-- PRACTICE CHECKOUT MODAL -->
+<div id="practiceCheckoutModal" class="modal" role="dialog" aria-labelledby="practiceCheckoutTitle">
+  <div class="modal-content">
+    <h3 id="practiceCheckoutTitle">Checkout!</h3>
+    <p>Which dart did you finish with?</p>
+    <div class="dart-buttons">
+      <button id="practiceDart1Btn" class="btn-success">1st</button>
+      <button id="practiceDart2Btn" class="btn-success">2nd</button>
+      <button id="practiceDart3Btn" class="btn-success">3rd</button>
+    </div>
   </div>
-  
-  <div class="keypad">
-    <div id="scoreDisplay" aria-live="polite"></div>
-    <button data-num="1">1</button>
-    <button data-num="2">2</button>
-    <button data-num="3">3</button>
-    <button data-num="4">4</button>
-    <button data-num="5">5</button>
-    <button data-num="6">6</button>
-    <button data-num="7">7</button>
-    <button data-num="8">8</button>
-    <button data-num="9">9</button>
-    <button id="backspaceBtn" class="btn-secondary" aria-label="Backspace">&#9003;</button>
-    <button data-num="0">0</button>
-    <button id="enterBtn" class="btn-success">Enter</button>
+</div>
+
+<!-- PRACTICE LEG WON MODAL -->
+<div id="practiceLegWonModal" class="modal" role="dialog" aria-labelledby="practiceLegWonTitle">
+  <div class="modal-content">
+    <h3 id="practiceLegWonTitle">Leg Complete!</h3>
+    <p id="practiceLegWonMessage"></p>
+    <button id="practiceNextLegBtn" class="btn-success" style="margin-top: 1rem;">Next Leg</button>
+    <button id="practiceEndSessionBtn" class="btn-secondary" style="margin-top: 0.5rem;">End Practice</button>
+  </div>
+</div>
+
+<!-- PRACTICE MENU MODAL -->
+<div id="practiceMenuModal" class="modal" role="dialog" aria-labelledby="practiceMenuTitle">
+  <div class="modal-content">
+    <h3 id="practiceMenuTitle">Menu</h3>
+    <button id="practiceEndBtn" class="btn-danger" style="margin-bottom: 0.5rem;">End Practice</button>
+    <button id="practiceHomeBtn" class="btn-secondary" style="margin-bottom: 0.5rem;">Return to Home</button>
+    <button id="closePracticeMenuBtn">Close</button>
   </div>
 </div>
 
@@ -526,6 +926,11 @@
   let webcamsEnabled = false;
   let mediaStreams = [];
   
+  // Practice mode variables
+  let practice = null;
+  let practiceInputValue = '';
+  let practicePendingCheckout = null;
+  
   // Utility functions
   function $(id) { return document.getElementById(id); }
   function showPage(id) {
@@ -575,10 +980,12 @@
   function renderPlayers() {
     const p1 = $('player1Select');
     const p2 = $('player2Select');
+    const practiceSelect = $('practicePlayerSelect');
     const list = $('playerList');
     
     p1.innerHTML = '';
     p2.innerHTML = '';
+    practiceSelect.innerHTML = '';
     list.innerHTML = '';
     
     if (players.length === 0) {
@@ -595,6 +1002,11 @@
       o2.value = player.name;
       o2.textContent = player.name;
       p2.appendChild(o2);
+      
+      const oPractice = document.createElement('option');
+      oPractice.value = player.name;
+      oPractice.textContent = player.name;
+      practiceSelect.appendChild(oPractice);
       
       const item = document.createElement('div');
       item.className = 'player-item';
@@ -715,39 +1127,84 @@
     renderScoreTable();
   }
   
-  // Render score table
+  // Render score table - both players on same row per round
   function renderScoreTable() {
     const tbody = $('scoreTableBody');
     tbody.innerHTML = '';
     
-    // Current scores row
+    // Group history into rounds (each round = both players have thrown)
+    const rounds = [];
+    let currentRound = { p1: null, p2: null, dartCount: 0 };
+    
+    match.history.forEach((turn, idx) => {
+      if (turn.player === 0) {
+        if (currentRound.p1 !== null) {
+          rounds.push(currentRound);
+          currentRound = { p1: null, p2: null, dartCount: 0 };
+        }
+        currentRound.p1 = { ...turn, historyIdx: idx };
+        currentRound.dartCount = turn.dartCount;
+      } else {
+        currentRound.p2 = { ...turn, historyIdx: idx };
+        currentRound.dartCount = turn.dartCount;
+      }
+    });
+    if (currentRound.p1 !== null || currentRound.p2 !== null) {
+      rounds.push(currentRound);
+    }
+    
+    // Current scores row (shows current "To Go" for both players)
     const currentRow = document.createElement('tr');
     currentRow.className = 'current-turn';
     currentRow.innerHTML = `
-      <td class="to-go" colspan="2" style="background: ${match.turn === 0 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
-        ${match.turn === 0 ? '>' : ''} ${match.scores[0]}
+      <td class="scored" style="background: ${match.turn === 0 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
+        ${match.turn === 0 ? '>' : ''}
+      </td>
+      <td class="to-go" style="background: ${match.turn === 0 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
+        ${match.scores[0]}
       </td>
       <td class="dart-count">${match.dartCount}</td>
-      <td class="to-go" colspan="2" style="background: ${match.turn === 1 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
-        ${match.scores[1]} ${match.turn === 1 ? '<' : ''}
+      <td class="to-go" style="background: ${match.turn === 1 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
+        ${match.scores[1]}
+      </td>
+      <td class="scored" style="background: ${match.turn === 1 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
+        ${match.turn === 1 ? '<' : ''}
       </td>
     `;
     tbody.appendChild(currentRow);
     
-    // History rows
-    match.history.slice().reverse().forEach((turn, idx) => {
-      const realIdx = match.history.length - 1 - idx;
+    // History rows - show rounds in reverse order (most recent first)
+    rounds.slice().reverse().forEach((round) => {
       const row = document.createElement('tr');
       row.className = 'editable';
-      row.setAttribute('data-turn-index', realIdx);
+      
+      const p1Scored = round.p1 ? round.p1.scored : '';
+      const p1ToGo = round.p1 ? round.p1.toGo : '';
+      const p2Scored = round.p2 ? round.p2.scored : '';
+      const p2ToGo = round.p2 ? round.p2.toGo : '';
+      
       row.innerHTML = `
-        <td>${turn.player === 0 ? turn.scored : ''}</td>
-        <td>${turn.player === 0 ? turn.toGo : ''}</td>
-        <td class="dart-count">${turn.dartCount}</td>
-        <td>${turn.player === 1 ? turn.toGo : ''}</td>
-        <td>${turn.player === 1 ? turn.scored : ''}</td>
+        <td class="p1-cell" data-idx="${round.p1 ? round.p1.historyIdx : ''}">${p1Scored}</td>
+        <td class="p1-cell" data-idx="${round.p1 ? round.p1.historyIdx : ''}">${p1ToGo}</td>
+        <td class="dart-count">${round.dartCount}</td>
+        <td class="p2-cell" data-idx="${round.p2 ? round.p2.historyIdx : ''}">${p2ToGo}</td>
+        <td class="p2-cell" data-idx="${round.p2 ? round.p2.historyIdx : ''}">${p2Scored}</td>
       `;
-      row.addEventListener('click', () => openEditModal(realIdx));
+      
+      // Add click handlers for editing
+      row.querySelectorAll('.p1-cell').forEach(cell => {
+        if (cell.dataset.idx !== '') {
+          cell.style.cursor = 'pointer';
+          cell.addEventListener('click', () => openEditModal(parseInt(cell.dataset.idx, 10)));
+        }
+      });
+      row.querySelectorAll('.p2-cell').forEach(cell => {
+        if (cell.dataset.idx !== '') {
+          cell.style.cursor = 'pointer';
+          cell.addEventListener('click', () => openEditModal(parseInt(cell.dataset.idx, 10)));
+        }
+      });
+      
       tbody.appendChild(row);
     });
   }
@@ -1055,69 +1512,311 @@
     $('statFirst9').textContent = first9Avg;
   }
   
-  // Webcam functions
-  async function toggleWebcams() {
-    const container = $('webcamContainer');
-    const btn = $('toggleWebcamBtn');
+  // Webcam functions - individual toggles per player
+  let webcam1Stream = null;
+  let webcam2Stream = null;
+  
+  async function toggleWebcam(playerNum) {
+    const btn = $(`toggleWebcam${playerNum}Btn`);
+    const video = $(`webcam${playerNum}`);
+    const placeholder = $(`webcam${playerNum}Placeholder`);
+    const streamVar = playerNum === 1 ? 'webcam1Stream' : 'webcam2Stream';
     
-    if (webcamsEnabled) {
-      // Disable webcams
-      mediaStreams.forEach(stream => {
-        stream.getTracks().forEach(track => track.stop());
-      });
-      mediaStreams = [];
-      $('webcam1').srcObject = null;
-      $('webcam2').srcObject = null;
-      container.style.display = 'none';
-      btn.textContent = 'Enable Webcams';
-      webcamsEnabled = false;
+    // Check if this webcam is currently enabled
+    const currentStream = playerNum === 1 ? webcam1Stream : webcam2Stream;
+    
+    if (currentStream) {
+      // Disable this webcam
+      currentStream.getTracks().forEach(track => track.stop());
+      if (playerNum === 1) {
+        webcam1Stream = null;
+      } else {
+        webcam2Stream = null;
+      }
+      video.srcObject = null;
+      video.style.display = 'none';
+      placeholder.innerHTML = '<span>Webcam Off</span><small>Click "Enable" above</small>';
+      placeholder.style.display = 'flex';
+      btn.textContent = 'Enable';
+      btn.classList.remove('active');
     } else {
-      // Enable webcams
+      // Enable this webcam
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(d => d.kind === 'videoinput');
         
         if (videoDevices.length === 0) {
-          alert('No webcams found');
+          alert('No webcams found. Connect a webcam and try again.');
           return;
         }
         
-        // Get first webcam
-        const stream1 = await navigator.mediaDevices.getUserMedia({ 
-          video: { deviceId: videoDevices[0].deviceId } 
-        });
-        $('webcam1').srcObject = stream1;
-        mediaStreams.push(stream1);
-        
-        // Get second webcam if available
-        if (videoDevices.length > 1) {
-          const stream2 = await navigator.mediaDevices.getUserMedia({ 
-            video: { deviceId: videoDevices[1].deviceId } 
-          });
-          $('webcam2').srcObject = stream2;
-          mediaStreams.push(stream2);
+        // Determine which device to use
+        // Player 1 gets first available, Player 2 gets second if available, else first
+        let deviceIndex = 0;
+        if (playerNum === 2 && videoDevices.length > 1) {
+          // Check if Player 1 is using the first device
+          if (webcam1Stream) {
+            deviceIndex = 1;
+          }
+        } else if (playerNum === 2 && webcam1Stream) {
+          // Only one webcam and Player 1 is using it
+          placeholder.innerHTML = '<span>No available webcam</span><small>Player 1 is using the only webcam</small>';
+          return;
         }
         
-        container.style.display = 'flex';
-        btn.textContent = 'Disable Webcams';
-        webcamsEnabled = true;
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { deviceId: videoDevices[deviceIndex].deviceId } 
+        });
+        
+        if (playerNum === 1) {
+          webcam1Stream = stream;
+        } else {
+          webcam2Stream = stream;
+        }
+        
+        video.srcObject = stream;
+        video.style.display = 'block';
+        placeholder.style.display = 'none';
+        btn.textContent = 'Disable';
+        btn.classList.add('active');
       } catch (err) {
         alert('Could not access webcam: ' + err.message);
       }
     }
   }
   
+  function stopAllWebcams() {
+    if (webcam1Stream) {
+      webcam1Stream.getTracks().forEach(track => track.stop());
+      webcam1Stream = null;
+    }
+    if (webcam2Stream) {
+      webcam2Stream.getTracks().forEach(track => track.stop());
+      webcam2Stream = null;
+    }
+  }
+  
   // End match
   function endMatch() {
-    if (webcamsEnabled) {
-      mediaStreams.forEach(stream => {
-        stream.getTracks().forEach(track => track.stop());
-      });
-      mediaStreams = [];
-      webcamsEnabled = false;
-    }
+    stopAllWebcams();
     match = null;
     clearInput();
+    showPage('homePage');
+  }
+  
+  // ==================== PRACTICE MODE ====================
+  
+  function startPractice() {
+    const playerName = $('practicePlayerSelect').value;
+    const gameType = parseInt($('practiceGameTypeSelect').value, 10);
+    
+    if (!playerName) {
+      alert('Please select a player');
+      return;
+    }
+    
+    const year = new Date().getFullYear();
+    initPlayerStats(playerName, year);
+    
+    practice = {
+      player: playerName,
+      gameType: gameType,
+      score: gameType,
+      dartCount: 0,
+      history: [],
+      legsWon: 0,
+      totalScore: 0,
+      totalThrows: 0,
+      first9Scores: [],
+      year: year
+    };
+    
+    $('practicePlayerName').textContent = playerName;
+    updatePracticeDisplay();
+    showPage('practicePage');
+  }
+  
+  function updatePracticeDisplay() {
+    if (!practice) return;
+    
+    $('practiceToGo').textContent = practice.score;
+    $('practiceDartCount').textContent = practice.dartCount;
+    $('practiceLegsWon').textContent = practice.legsWon;
+    
+    const avg = practice.totalThrows > 0 
+      ? ((practice.totalScore / practice.totalThrows) * 3).toFixed(2) 
+      : '0.00';
+    $('practiceAvg').textContent = avg;
+    
+    renderPracticeScoreTable();
+  }
+  
+  function renderPracticeScoreTable() {
+    const tbody = $('practiceScoreTableBody');
+    tbody.innerHTML = '';
+    
+    practice.history.slice().reverse().forEach((turn) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${turn.scored}</td>
+        <td>${turn.toGo}</td>
+        <td>${turn.dartCount}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+  
+  function practicePress(n) {
+    if (practiceInputValue.length < 3) {
+      practiceInputValue += n;
+      $('practiceScoreDisplay').textContent = practiceInputValue;
+    }
+  }
+  
+  function practiceBackspace() {
+    practiceInputValue = practiceInputValue.slice(0, -1);
+    $('practiceScoreDisplay').textContent = practiceInputValue;
+  }
+  
+  function clearPracticeInput() {
+    practiceInputValue = '';
+    $('practiceScoreDisplay').textContent = '';
+  }
+  
+  function submitPracticeScore() {
+    if (!practiceInputValue || !practice) return;
+    
+    const value = parseInt(practiceInputValue, 10);
+    
+    if (value > MAX_SCORE) {
+      alert(`Maximum score per turn is ${MAX_SCORE}`);
+      clearPracticeInput();
+      return;
+    }
+    
+    const before = practice.score;
+    const after = before - value;
+    
+    // Track first 9 darts
+    if (practice.first9Scores.length < 3) {
+      practice.first9Scores.push(value);
+    }
+    
+    // Track stats
+    const year = practice.year;
+    const playerStats = stats[practice.player][year];
+    
+    if (value >= 180) playerStats.scores180++;
+    else if (value >= 140) playerStats.scores140++;
+    else if (value >= 100) playerStats.scores100++;
+    
+    practice.totalScore += value;
+    practice.totalThrows++;
+    playerStats.totalScore += value;
+    playerStats.totalThrows++;
+    
+    if (after < 0 || after === 1) {
+      // Bust
+      practice.history.push({
+        scored: value + ' (BUST)',
+        toGo: before,
+        dartCount: practice.dartCount + 3
+      });
+      practice.dartCount += 3;
+      clearPracticeInput();
+      updatePracticeDisplay();
+      saveStats();
+      return;
+    }
+    
+    if (after === 0) {
+      // Checkout - ask which dart
+      practicePendingCheckout = { value, before };
+      showModal('practiceCheckoutModal');
+      return;
+    }
+    
+    // Normal score
+    practice.score = after;
+    practice.history.push({
+      scored: value,
+      toGo: after,
+      dartCount: practice.dartCount + 3
+    });
+    practice.dartCount += 3;
+    
+    clearPracticeInput();
+    updatePracticeDisplay();
+    saveStats();
+  }
+  
+  function completePracticeCheckout(dartNumber) {
+    hideModal('practiceCheckoutModal');
+    
+    if (!practicePendingCheckout || !practice) return;
+    
+    const { value, before } = practicePendingCheckout;
+    const dartsUsed = practice.dartCount + dartNumber;
+    
+    // Update stats
+    const year = practice.year;
+    const playerStats = stats[practice.player][year];
+    
+    playerStats.legsWon++;
+    playerStats.legsPlayed++;
+    playerStats.totalDarts += dartsUsed;
+    playerStats.totalLegsForAvg++;
+    
+    if (value > playerStats.highOut) {
+      playerStats.highOut = value;
+    }
+    
+    if (!playerStats.bestLeg || dartsUsed < playerStats.bestLeg) {
+      playerStats.bestLeg = dartsUsed;
+    }
+    if (!playerStats.worstLeg || dartsUsed > playerStats.worstLeg) {
+      playerStats.worstLeg = dartsUsed;
+    }
+    
+    // First 9 average
+    if (practice.first9Scores.length > 0) {
+      const first9Sum = practice.first9Scores.reduce((a, b) => a + b, 0);
+      playerStats.first9Total += first9Sum;
+      playerStats.first9Count++;
+    }
+    
+    practice.history.push({
+      scored: value + ' (OUT)',
+      toGo: 0,
+      dartCount: dartsUsed
+    });
+    
+    practice.legsWon++;
+    
+    // Show leg complete modal
+    $('practiceLegWonMessage').textContent = `Leg completed in ${dartsUsed} darts!`;
+    showModal('practiceLegWonModal');
+    
+    practicePendingCheckout = null;
+    clearPracticeInput();
+    saveStats();
+  }
+  
+  function resetPracticeLeg() {
+    if (!practice) return;
+    
+    practice.score = practice.gameType;
+    practice.dartCount = 0;
+    practice.history = [];
+    practice.first9Scores = [];
+    
+    clearPracticeInput();
+    updatePracticeDisplay();
+  }
+  
+  function endPractice() {
+    practice = null;
+    clearPracticeInput();
     showPage('homePage');
   }
   
@@ -1130,6 +1829,7 @@
     $('addPlayerBtn').addEventListener('click', addPlayer);
     $('newPlayerInput').addEventListener('keypress', e => { if (e.key === 'Enter') addPlayer(); });
     $('startMatchBtn').addEventListener('click', startMatch);
+    $('startPracticeBtn').addEventListener('click', startPractice);
     
     // Player list delegation
     $('playerList').addEventListener('click', function(e) {
@@ -1178,7 +1878,8 @@
       }
     });
     
-    $('toggleWebcamBtn').addEventListener('click', toggleWebcams);
+    $('toggleWebcam1Btn').addEventListener('click', () => toggleWebcam(1));
+    $('toggleWebcam2Btn').addEventListener('click', () => toggleWebcam(2));
     
     // Checkout modal
     $('dart1Btn').addEventListener('click', () => completeCheckout(1));
@@ -1208,6 +1909,8 @@
     $('backFromStatsBtn').addEventListener('click', () => {
       if (match) {
         showPage('matchPage');
+      } else if (practice) {
+        showPage('practicePage');
       } else {
         showPage('homePage');
       }
@@ -1223,6 +1926,60 @@
       renderStats();
     });
     
+    // Practice page
+    document.querySelectorAll('.practice-num').forEach(btn => {
+      btn.addEventListener('click', () => practicePress(btn.dataset.num));
+    });
+    $('practiceBackspaceBtn').addEventListener('click', practiceBackspace);
+    $('practiceEnterBtn').addEventListener('click', submitPracticeScore);
+    
+    $('practiceNewLegBtn').addEventListener('click', () => {
+      if (practice && confirm('Start a new leg? Current progress will be lost.')) {
+        resetPracticeLeg();
+      }
+    });
+    
+    $('practiceFinishBtn').addEventListener('click', () => {
+      if (practice && practice.score <= 170) {
+        alert('Enter your checkout score using the keypad');
+      }
+    });
+    
+    $('practiceStatsBtn').addEventListener('click', () => {
+      if (practice) viewStats(practice.player);
+    });
+    
+    $('practiceMenuBtn').addEventListener('click', () => showModal('practiceMenuModal'));
+    $('closePracticeMenuBtn').addEventListener('click', () => hideModal('practiceMenuModal'));
+    $('practiceHomeBtn').addEventListener('click', () => {
+      hideModal('practiceMenuModal');
+      if (confirm('Return to home? Practice progress will be lost.')) {
+        endPractice();
+      }
+    });
+    $('practiceEndBtn').addEventListener('click', () => {
+      hideModal('practiceMenuModal');
+      if (confirm('End practice session?')) {
+        endPractice();
+      }
+    });
+    
+    // Practice checkout modal
+    $('practiceDart1Btn').addEventListener('click', () => completePracticeCheckout(1));
+    $('practiceDart2Btn').addEventListener('click', () => completePracticeCheckout(2));
+    $('practiceDart3Btn').addEventListener('click', () => completePracticeCheckout(3));
+    
+    // Practice leg won modal
+    $('practiceNextLegBtn').addEventListener('click', () => {
+      hideModal('practiceLegWonModal');
+      resetPracticeLeg();
+      updatePracticeDisplay();
+    });
+    $('practiceEndSessionBtn').addEventListener('click', () => {
+      hideModal('practiceLegWonModal');
+      endPractice();
+    });
+    
     // Keyboard support
     document.addEventListener('keydown', function(e) {
       if (document.querySelector('.modal.active')) return;
@@ -1235,6 +1992,14 @@
           backspace();
         } else if (e.key === 'Enter') {
           submitScore();
+        }
+      } else if ($('practicePage').classList.contains('active')) {
+        if (e.key >= '0' && e.key <= '9') {
+          practicePress(e.key);
+        } else if (e.key === 'Backspace') {
+          practiceBackspace();
+        } else if (e.key === 'Enter') {
+          submitPracticeScore();
         }
       }
     });
