@@ -3,280 +3,1244 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Darts Scorer MVP</title>
+  <title>Darts Scorer</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin:0; background:#111; color:#fff; }
-    header { padding:1rem; text-align:center; background:#1e1e1e; font-size:1.4rem; }
-    .page { display:none; padding:1rem; }
-    .page.active { display:block; }
-    select, input, button { font-size:1.1rem; padding:0.6rem; margin:0.4rem 0; width:100%; }
-    button { background:#2ecc71; border:none; color:#000; font-weight:700; border-radius:8px; }
-    .danger { background:#e74c3c; color:#fff; }
-    .secondary { background:#3498db; color:#fff; }
-    .scoreboard { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem; }
-    .player { width:50%; text-align:center; padding:0.5rem; border-radius:10px; }
-    .player.inactive { opacity:0.35; }
-    .player.active { border:2px solid #2ecc71; }
-    .score { font-size:3rem; font-weight:800; }
-    .log { max-height:200px; overflow-y:auto; background:#1e1e1e; padding:0.5rem; margin-bottom:1rem; border-radius:8px; }
-    .log div { border-bottom:1px solid #333; padding:0.3rem 0; }
-    .keypad { display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; }
-    #scoreInput { grid-column:1 / -1; text-align:center; font-size:1.4rem; }
-    .checkout-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:100; }
-    .checkout-modal.active { display:flex; }
-    .checkout-content { background:#1e1e1e; padding:1.5rem; border-radius:10px; text-align:center; max-width:300px; width:90%; }
-    .checkout-content h3 { margin-top:0; }
-    .checkout-buttons { display:flex; gap:0.5rem; margin-top:1rem; }
-    .checkout-buttons button { flex:1; }
+    :root {
+      --primary: #2c3e50;
+      --secondary: #34495e;
+      --accent: #3498db;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --light: #ecf0f1;
+      --dark: #1a252f;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--dark);
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    header {
+      background: var(--primary);
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-bottom: 3px solid var(--accent);
+    }
+    
+    .page { display: none; padding: 1rem; max-width: 800px; margin: 0 auto; }
+    .page.active { display: block; }
+    
+    h2 { margin: 1.5rem 0 1rem; color: var(--accent); border-bottom: 1px solid var(--secondary); padding-bottom: 0.5rem; }
+    h3 { margin: 1rem 0 0.5rem; color: var(--light); }
+    
+    label { display: block; margin-top: 0.8rem; color: var(--light); font-size: 0.9rem; }
+    
+    select, input, button {
+      font-size: 1rem;
+      padding: 0.7rem;
+      margin: 0.3rem 0;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+    }
+    
+    select, input {
+      background: var(--secondary);
+      color: #fff;
+    }
+    
+    select:focus, input:focus { outline: 2px solid var(--accent); }
+    
+    button {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-warning { background: var(--warning); color: #000; }
+    .btn-secondary { background: var(--secondary); }
+    
+    .btn-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .btn-row button { flex: 1; }
+    
+    .player-list {
+      background: var(--secondary);
+      border-radius: 8px;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .player-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--dark);
+    }
+    .player-item:last-child { border-bottom: none; }
+    .player-item button { width: auto; padding: 0.3rem 0.8rem; font-size: 0.85rem; }
+    
+    /* Match Page Styles */
+    .match-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--primary);
+      padding: 0.8rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    
+    .match-header .player-name {
+      font-weight: 700;
+      font-size: 1.1rem;
+      max-width: 35%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .match-header .match-score {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--secondary);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .score-table th {
+      background: var(--primary);
+      padding: 0.6rem;
+      font-size: 0.85rem;
+      color: var(--light);
+    }
+    
+    .score-table td {
+      padding: 0.5rem;
+      text-align: center;
+      border-bottom: 1px solid var(--dark);
+    }
+    
+    .score-table .to-go {
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+    
+    .score-table .dart-count {
+      background: var(--dark);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .score-table .current-turn {
+      background: rgba(52, 152, 219, 0.2);
+    }
+    
+    .score-table .editable:hover {
+      background: rgba(52, 152, 219, 0.3);
+      cursor: pointer;
+    }
+    
+    .score-history {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 1rem 0;
+      border-radius: 8px;
+    }
+    
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+    
+    .keypad button {
+      padding: 1rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    
+    #scoreDisplay {
+      grid-column: 1 / -1;
+      background: var(--secondary);
+      color: #fff;
+      font-size: 2rem;
+      text-align: center;
+      padding: 0.8rem;
+      border-radius: 6px;
+      min-height: 60px;
+    }
+    
+    .action-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .action-bar button { flex: 1; padding: 0.6rem; font-size: 0.9rem; }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal.active { display: flex; }
+    
+    .modal-content {
+      background: var(--secondary);
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    
+    .modal-content h3 { margin-bottom: 1rem; color: var(--accent); }
+    .modal-content p { margin-bottom: 1rem; }
+    
+    .dart-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .dart-buttons button { flex: 1; padding: 1rem; font-size: 1.1rem; }
+    
+    /* Stats Page */
+    .stats-section {
+      background: var(--secondary);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .stats-section h4 {
+      background: var(--primary);
+      margin: -1rem -1rem 1rem -1rem;
+      padding: 0.7rem;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+    
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--dark);
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-value { font-weight: 600; color: var(--accent); }
+    
+    .year-selector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .year-selector button { width: auto; padding: 0.5rem 1rem; }
+    .year-selector span { font-size: 1.5rem; font-weight: 700; }
+    
+    /* Webcam */
+    .webcam-container {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .webcam-box {
+      flex: 1;
+      background: var(--secondary);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .webcam-box video {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      background: #000;
+    }
+    
+    .webcam-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      padding: 0.3rem;
+      text-align: center;
+      font-size: 0.8rem;
+    }
+    
+    .webcam-toggle {
+      margin-bottom: 1rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 500px) {
+      .match-header .player-name { font-size: 0.9rem; }
+      .match-header .match-score { font-size: 1.2rem; }
+      .keypad button { padding: 0.8rem; font-size: 1.1rem; }
+      .webcam-container { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
-<header>Darts Scorer – MVP</header>
 
-<!-- HOME -->
-<div id="home" class="page active">
+<header>Darts Scorer</header>
+
+<!-- HOME PAGE -->
+<div id="homePage" class="page active">
   <h2>New Game</h2>
-  <label for="player1">Player 1</label>
-  <select id="player1" aria-label="Select Player 1"></select>
-  <label for="player2">Player 2</label>
-  <select id="player2" aria-label="Select Player 2"></select>
-  <label for="gameType">Game</label>
-  <select id="gameType" aria-label="Select Game Type">
+  
+  <label for="player1Select">Player 1</label>
+  <select id="player1Select" aria-label="Select Player 1"></select>
+  
+  <label for="player2Select">Player 2</label>
+  <select id="player2Select" aria-label="Select Player 2"></select>
+  
+  <label for="gameTypeSelect">Game Type</label>
+  <select id="gameTypeSelect" aria-label="Select Game Type">
     <option value="501">501</option>
     <option value="301">301</option>
   </select>
-  <button id="startBtn" aria-label="Start Match">Start Match</button>
-
-  <h2>Create Player</h2>
-  <label for="newPlayerName">Player Name</label>
-  <input id="newPlayerName" placeholder="Player name" aria-label="Enter new player name" />
-  <button id="addPlayerBtn" aria-label="Add Player">Add Player</button>
+  
+  <label for="matchFormatSelect">Match Format</label>
+  <select id="matchFormatSelect" aria-label="Select Match Format">
+    <option value="legs">Best of Legs</option>
+    <option value="sets">Best of Sets (3 legs = 1 set)</option>
+  </select>
+  
+  <label for="matchLengthSelect">Best of</label>
+  <select id="matchLengthSelect" aria-label="Select Match Length">
+    <option value="1">1</option>
+    <option value="3">3</option>
+    <option value="5" selected>5</option>
+    <option value="7">7</option>
+    <option value="9">9</option>
+    <option value="11">11</option>
+    <option value="13">13</option>
+  </select>
+  
+  <button id="startMatchBtn" class="btn-success" style="margin-top: 1rem;">Start Match</button>
+  
+  <h2>Manage Players</h2>
+  
+  <label for="newPlayerInput">Create New Player</label>
+  <input type="text" id="newPlayerInput" placeholder="Enter player name" aria-label="Enter new player name" />
+  <button id="addPlayerBtn">Add Player</button>
+  
+  <h3>Existing Players</h3>
+  <div id="playerList" class="player-list" role="list" aria-label="List of players"></div>
 </div>
 
-<!-- MATCH -->
-<div id="match" class="page">
-  <div class="scoreboard">
-    <div id="p1Box" class="player" role="region" aria-label="Player 1 score">
-      <div id="p1Name"></div>
-      <div id="p1Score" class="score" aria-live="polite"></div>
+<!-- MATCH PAGE -->
+<div id="matchPage" class="page">
+  <div class="action-bar">
+    <button id="newLegBtn" class="btn-secondary">New Leg</button>
+    <button id="finishBtn" class="btn-warning">Finish</button>
+    <button id="statsBtn" class="btn-secondary">Stats</button>
+    <button id="menuBtn" class="btn-secondary">Menu</button>
+  </div>
+  
+  <div class="webcam-toggle">
+    <button id="toggleWebcamBtn" class="btn-secondary">Enable Webcams</button>
+  </div>
+  
+  <div id="webcamContainer" class="webcam-container" style="display: none;">
+    <div class="webcam-box">
+      <video id="webcam1" autoplay playsinline muted></video>
+      <div class="webcam-label" id="webcam1Label">Player 1</div>
     </div>
-    <div id="p2Box" class="player" role="region" aria-label="Player 2 score">
-      <div id="p2Name"></div>
-      <div id="p2Score" class="score" aria-live="polite"></div>
+    <div class="webcam-box">
+      <video id="webcam2" autoplay playsinline muted></video>
+      <div class="webcam-label" id="webcam2Label">Player 2</div>
     </div>
   </div>
+  
+  <div class="match-header">
+    <span class="player-name" id="p1NameDisplay"></span>
+    <span class="match-score" id="matchScoreDisplay">0 - 0</span>
+    <span class="player-name" id="p2NameDisplay"></span>
+  </div>
+  
+  <div class="score-history" id="scoreHistory">
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Scored</th>
+          <th>To Go</th>
+          <th>Darts</th>
+          <th>To Go</th>
+          <th>Scored</th>
+        </tr>
+      </thead>
+      <tbody id="scoreTableBody"></tbody>
+    </table>
+  </div>
+  
+  <div class="keypad">
+    <div id="scoreDisplay" aria-live="polite"></div>
+    <button data-num="1">1</button>
+    <button data-num="2">2</button>
+    <button data-num="3">3</button>
+    <button data-num="4">4</button>
+    <button data-num="5">5</button>
+    <button data-num="6">6</button>
+    <button data-num="7">7</button>
+    <button data-num="8">8</button>
+    <button data-num="9">9</button>
+    <button id="backspaceBtn" class="btn-secondary" aria-label="Backspace">&#9003;</button>
+    <button data-num="0">0</button>
+    <button id="enterBtn" class="btn-success">Enter</button>
+  </div>
+</div>
 
-  <div class="log" id="turnLog" role="log" aria-label="Turn history"></div>
+<!-- STATS PAGE -->
+<div id="statsPage" class="page">
+  <button id="backFromStatsBtn" class="btn-secondary" style="margin-bottom: 1rem;">Back</button>
+  
+  <h2 id="statsPlayerName">Player Stats</h2>
+  
+  <div class="year-selector">
+    <button id="prevYearBtn" aria-label="Previous year">&lt;</button>
+    <span id="statsYear">2026</span>
+    <button id="nextYearBtn" aria-label="Next year">&gt;</button>
+  </div>
+  
+  <div class="stats-section">
+    <h4>Totals</h4>
+    <div class="stat-row"><span>Sets</span><span class="stat-value" id="statSets">0 / 0 (0%)</span></div>
+    <div class="stat-row"><span>Legs</span><span class="stat-value" id="statLegs">0 / 0 (0%)</span></div>
+    <div class="stat-row"><span>100+</span><span class="stat-value" id="stat100">0</span></div>
+    <div class="stat-row"><span>140+</span><span class="stat-value" id="stat140">0</span></div>
+    <div class="stat-row"><span>180s</span><span class="stat-value" id="stat180">0</span></div>
+    <div class="stat-row"><span>High Out</span><span class="stat-value" id="statHighOut">0</span></div>
+    <div class="stat-row"><span>Best Leg</span><span class="stat-value" id="statBestLeg">-</span></div>
+    <div class="stat-row"><span>Worst Leg</span><span class="stat-value" id="statWorstLeg">-</span></div>
+  </div>
+  
+  <div class="stats-section">
+    <h4>Averages</h4>
+    <div class="stat-row"><span>Darts (per leg)</span><span class="stat-value" id="statAvgDarts">0</span></div>
+    <div class="stat-row"><span>Score (per 3 darts)</span><span class="stat-value" id="statAvgScore">0</span></div>
+    <div class="stat-row"><span>First 9</span><span class="stat-value" id="statFirst9">0</span></div>
+  </div>
+</div>
 
-  <div class="keypad" role="group" aria-label="Score input keypad">
-    <input id="scoreInput" readonly placeholder="Enter score (max 180)" aria-label="Current score input" />
-    <button data-num="1" aria-label="1">1</button><button data-num="2" aria-label="2">2</button><button data-num="3" aria-label="3">3</button>
-    <button data-num="4" aria-label="4">4</button><button data-num="5" aria-label="5">5</button><button data-num="6" aria-label="6">6</button>
-    <button data-num="7" aria-label="7">7</button><button data-num="8" aria-label="8">8</button><button data-num="9" aria-label="9">9</button>
-    <button data-num="0" aria-label="0">0</button><button id="clrBtn" aria-label="Clear">CLR</button><button id="enterBtn" aria-label="Enter score">ENTER</button>
-    <button class="secondary" id="undoBtn" aria-label="Undo last score">UNDO</button>
-    <button class="danger" id="endBtn" aria-label="End match">END</button>
+<!-- MENU MODAL -->
+<div id="menuModal" class="modal" role="dialog" aria-labelledby="menuTitle">
+  <div class="modal-content">
+    <h3 id="menuTitle">Menu</h3>
+    <button id="cancelMatchBtn" class="btn-danger" style="margin-bottom: 0.5rem;">Cancel Match</button>
+    <button id="homeBtn" class="btn-secondary" style="margin-bottom: 0.5rem;">Return to Home</button>
+    <button id="closeMenuBtn">Close</button>
   </div>
 </div>
 
 <!-- CHECKOUT MODAL -->
-<div id="checkoutModal" class="checkout-modal" role="dialog" aria-labelledby="checkoutTitle">
-  <div class="checkout-content">
-    <h3 id="checkoutTitle">Checkout! Which dart?</h3>
-    <p>Select which dart finished the leg:</p>
-    <div class="checkout-buttons">
-      <button id="dart1Btn">1st</button>
-      <button id="dart2Btn">2nd</button>
-      <button id="dart3Btn">3rd</button>
+<div id="checkoutModal" class="modal" role="dialog" aria-labelledby="checkoutTitle">
+  <div class="modal-content">
+    <h3 id="checkoutTitle">Checkout!</h3>
+    <p>Which dart did you finish with?</p>
+    <div class="dart-buttons">
+      <button id="dart1Btn" class="btn-success">1st</button>
+      <button id="dart2Btn" class="btn-success">2nd</button>
+      <button id="dart3Btn" class="btn-success">3rd</button>
     </div>
   </div>
 </div>
 
+<!-- EDIT SCORE MODAL -->
+<div id="editModal" class="modal" role="dialog" aria-labelledby="editTitle">
+  <div class="modal-content">
+    <h3 id="editTitle">Edit Score</h3>
+    <p>Enter new score for this turn:</p>
+    <input type="number" id="editScoreInput" min="0" max="180" />
+    <div class="btn-row" style="margin-top: 1rem;">
+      <button id="saveEditBtn" class="btn-success">Save</button>
+      <button id="cancelEditBtn" class="btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEG WON MODAL -->
+<div id="legWonModal" class="modal" role="dialog" aria-labelledby="legWonTitle">
+  <div class="modal-content">
+    <h3 id="legWonTitle">Leg Won!</h3>
+    <p id="legWonMessage"></p>
+    <button id="continueLegBtn" class="btn-success" style="margin-top: 1rem;">Continue</button>
+  </div>
+</div>
+
+<!-- MATCH WON MODAL -->
+<div id="matchWonModal" class="modal" role="dialog" aria-labelledby="matchWonTitle">
+  <div class="modal-content">
+    <h3 id="matchWonTitle">Match Won!</h3>
+    <p id="matchWonMessage"></p>
+    <button id="newMatchBtn" class="btn-success" style="margin-top: 1rem;">New Match</button>
+  </div>
+</div>
+
 <script>
-(function(){
-  const STORAGE_KEY = 'dartsPlayers';
-  const MAX_SCORE_PER_TURN = 180;
-  const VALID_DOUBLES = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,50];
+(function() {
+  'use strict';
+  
+  const STORAGE_PLAYERS = 'dartsPlayers';
+  const STORAGE_STATS = 'dartsStats';
+  const MAX_SCORE = 180;
   
   let players = [];
-  let game = null;
+  let stats = {};
+  let match = null;
   let inputValue = '';
   let pendingCheckout = null;
-
-  function loadPlayers(){
+  let editingTurn = null;
+  let statsViewPlayer = null;
+  let statsViewYear = new Date().getFullYear();
+  let webcamsEnabled = false;
+  let mediaStreams = [];
+  
+  // Utility functions
+  function $(id) { return document.getElementById(id); }
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+  function showModal(id) { $(id).classList.add('active'); }
+  function hideModal(id) { $(id).classList.remove('active'); }
+  
+  // Data persistence
+  function loadData() {
     try {
-      players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch(e){ players = []; }
-    
-    if(players.length === 0){
-      players = [{ name: 'Guest 1', stats:{} }, { name: 'Guest 2', stats:{} }];
-      savePlayers();
+      players = JSON.parse(localStorage.getItem(STORAGE_PLAYERS)) || [];
+      stats = JSON.parse(localStorage.getItem(STORAGE_STATS)) || {};
+    } catch(e) {
+      players = [];
+      stats = {};
     }
   }
-  function savePlayers(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(players)); }
-
-  function qs(id){ return document.getElementById(id); }
-
-  function renderPlayers(){
-    const p1 = qs('player1');
-    const p2 = qs('player2');
-    p1.innerHTML = ''; p2.innerHTML = '';
-    players.forEach((p, index) => {
-      const o1 = document.createElement('option'); o1.value = p.name; o1.textContent = p.name;
-      const o2 = document.createElement('option'); o2.value = p.name; o2.textContent = p.name;
-      p1.appendChild(o1); p2.appendChild(o2);
+  
+  function savePlayers() {
+    localStorage.setItem(STORAGE_PLAYERS, JSON.stringify(players));
+  }
+  
+  function saveStats() {
+    localStorage.setItem(STORAGE_STATS, JSON.stringify(stats));
+  }
+  
+  // Initialize player stats structure
+  function initPlayerStats(playerName, year) {
+    if (!stats[playerName]) stats[playerName] = {};
+    if (!stats[playerName][year]) {
+      stats[playerName][year] = {
+        setsWon: 0, setsPlayed: 0,
+        legsWon: 0, legsPlayed: 0,
+        scores100: 0, scores140: 0, scores180: 0,
+        highOut: 0, bestLeg: null, worstLeg: null,
+        totalDarts: 0, totalLegsForAvg: 0,
+        totalScore: 0, totalThrows: 0,
+        first9Total: 0, first9Count: 0
+      };
+    }
+    return stats[playerName][year];
+  }
+  
+  // Render player dropdowns and list
+  function renderPlayers() {
+    const p1 = $('player1Select');
+    const p2 = $('player2Select');
+    const list = $('playerList');
+    
+    p1.innerHTML = '';
+    p2.innerHTML = '';
+    list.innerHTML = '';
+    
+    if (players.length === 0) {
+      list.innerHTML = '<div style="padding: 1rem; text-align: center; color: #888;">No players yet. Create one above.</div>';
+    }
+    
+    players.forEach((player, index) => {
+      const o1 = document.createElement('option');
+      o1.value = player.name;
+      o1.textContent = player.name;
+      p1.appendChild(o1);
+      
+      const o2 = document.createElement('option');
+      o2.value = player.name;
+      o2.textContent = player.name;
+      p2.appendChild(o2);
+      
+      const item = document.createElement('div');
+      item.className = 'player-item';
+      item.setAttribute('role', 'listitem');
+      item.innerHTML = `
+        <span>${player.name}</span>
+        <div>
+          <button class="btn-secondary view-stats-btn" data-player="${player.name}" aria-label="View stats for ${player.name}">Stats</button>
+          <button class="btn-danger delete-player-btn" data-index="${index}" aria-label="Delete ${player.name}">Delete</button>
+        </div>
+      `;
+      list.appendChild(item);
     });
-    if(players.length > 1){
+    
+    if (players.length > 1) {
       p2.selectedIndex = 1;
     }
   }
-
-  function addPlayer(){
-    const input = qs('newPlayerName');
+  
+  // Add new player
+  function addPlayer() {
+    const input = $('newPlayerInput');
     const name = input.value.trim();
-    if(!name){ alert('Enter a player name'); return; }
-    if(players.some(p => p.name.toLowerCase() === name.toLowerCase())){ alert('Player already exists'); return; }
-    players.push({ name, stats:{} });
+    
+    if (!name) {
+      alert('Please enter a player name');
+      return;
+    }
+    
+    if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+      alert('Player already exists');
+      return;
+    }
+    
+    players.push({ name, createdAt: Date.now() });
     savePlayers();
     renderPlayers();
     input.value = '';
   }
-
-  function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); qs(id).classList.add('active'); }
-
-  function startGame(){
-    const p1 = qs('player1').value;
-    const p2 = qs('player2').value;
-    const start = parseInt(qs('gameType').value,10);
-    if(!p1 || !p2 || p1===p2){ alert('Select two different players'); return; }
-    game = { players:[p1,p2], scores:[start,start], turn:0, log:[], history:[] };
-    qs('p1Name').textContent = p1; qs('p2Name').textContent = p2;
-    updateScores(); showPage('match');
-  }
-
-  function updateScores(){
-    qs('p1Score').textContent = game.scores[0]; qs('p2Score').textContent = game.scores[1];
-    qs('p1Box').classList.toggle('active', game.turn===0);
-    qs('p1Box').classList.toggle('inactive', game.turn!==0);
-    qs('p2Box').classList.toggle('active', game.turn===1);
-    qs('p2Box').classList.toggle('inactive', game.turn!==1);
-    renderLog();
-  }
-
-  function renderLog(){
-    const log = qs('turnLog'); log.innerHTML='';
-    game.log.slice().reverse().forEach(t=>{ const d=document.createElement('div'); d.textContent=t; log.appendChild(d); });
-  }
-
-  function pressNum(n){ 
-    if(inputValue.length < 3){
-      inputValue += n; 
-      qs('scoreInput').value = inputValue; 
+  
+  // Delete player
+  function deletePlayer(index) {
+    const player = players[index];
+    if (confirm(`Delete player "${player.name}"? This will also delete their stats.`)) {
+      delete stats[player.name];
+      players.splice(index, 1);
+      savePlayers();
+      saveStats();
+      renderPlayers();
     }
   }
-  function clearInput(){ inputValue=''; qs('scoreInput').value=''; }
-
-  function showCheckoutModal(value, idx){
-    pendingCheckout = { value, idx };
-    qs('checkoutModal').classList.add('active');
-  }
-
-  function hideCheckoutModal(){
-    qs('checkoutModal').classList.remove('active');
-    pendingCheckout = null;
-  }
-
-  function completeCheckout(dartNumber){
-    if(!pendingCheckout) return;
-    const { value, idx } = pendingCheckout;
+  
+  // Start match
+  function startMatch() {
+    const p1 = $('player1Select').value;
+    const p2 = $('player2Select').value;
+    const gameType = parseInt($('gameTypeSelect').value, 10);
+    const matchFormat = $('matchFormatSelect').value;
+    const bestOf = parseInt($('matchLengthSelect').value, 10);
     
-    game.history.push({ scores: [...game.scores], turn: game.turn, log: [...game.log] });
-    game.scores[idx] = 0;
-    game.log.push(`${game.players[idx]} wins! Checkout on dart ${dartNumber} (scored ${value})`);
+    if (!p1 || !p2) {
+      alert('Please select both players');
+      return;
+    }
     
-    hideCheckoutModal();
-    alert(`${game.players[idx]} wins the leg!`);
-    endMatch();
+    if (p1 === p2) {
+      alert('Please select two different players');
+      return;
+    }
+    
+    const year = new Date().getFullYear();
+    initPlayerStats(p1, year);
+    initPlayerStats(p2, year);
+    
+    match = {
+      players: [p1, p2],
+      gameType: gameType,
+      startScore: gameType,
+      matchFormat: matchFormat,
+      bestOf: bestOf,
+      legsToWin: matchFormat === 'legs' ? Math.ceil(bestOf / 2) : 3,
+      setsToWin: matchFormat === 'sets' ? Math.ceil(bestOf / 2) : null,
+      scores: [gameType, gameType],
+      legScores: [0, 0],
+      setScores: [0, 0],
+      turn: 0,
+      dartCount: 0,
+      history: [],
+      legHistory: [],
+      first9Scores: [[], []],
+      year: year
+    };
+    
+    $('p1NameDisplay').textContent = p1;
+    $('p2NameDisplay').textContent = p2;
+    $('webcam1Label').textContent = p1;
+    $('webcam2Label').textContent = p2;
+    
+    updateMatchDisplay();
+    showPage('matchPage');
   }
-
-  function submitScore(){
-    if(!inputValue) return;
-    const value = parseInt(inputValue,10);
+  
+  // Update match display
+  function updateMatchDisplay() {
+    if (!match) return;
     
-    if(value > MAX_SCORE_PER_TURN){
-      alert(`Maximum score per turn is ${MAX_SCORE_PER_TURN}`);
+    let scoreText;
+    if (match.matchFormat === 'sets') {
+      scoreText = `${match.setScores[0]} - ${match.setScores[1]}`;
+      if (match.legScores[0] > 0 || match.legScores[1] > 0) {
+        scoreText += ` (${match.legScores[0]}-${match.legScores[1]})`;
+      }
+    } else {
+      scoreText = `${match.legScores[0]} - ${match.legScores[1]}`;
+    }
+    $('matchScoreDisplay').textContent = scoreText;
+    
+    renderScoreTable();
+  }
+  
+  // Render score table
+  function renderScoreTable() {
+    const tbody = $('scoreTableBody');
+    tbody.innerHTML = '';
+    
+    // Current scores row
+    const currentRow = document.createElement('tr');
+    currentRow.className = 'current-turn';
+    currentRow.innerHTML = `
+      <td class="to-go" colspan="2" style="background: ${match.turn === 0 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
+        ${match.turn === 0 ? '>' : ''} ${match.scores[0]}
+      </td>
+      <td class="dart-count">${match.dartCount}</td>
+      <td class="to-go" colspan="2" style="background: ${match.turn === 1 ? 'rgba(46, 204, 113, 0.3)' : 'transparent'}">
+        ${match.scores[1]} ${match.turn === 1 ? '<' : ''}
+      </td>
+    `;
+    tbody.appendChild(currentRow);
+    
+    // History rows
+    match.history.slice().reverse().forEach((turn, idx) => {
+      const realIdx = match.history.length - 1 - idx;
+      const row = document.createElement('tr');
+      row.className = 'editable';
+      row.setAttribute('data-turn-index', realIdx);
+      row.innerHTML = `
+        <td>${turn.player === 0 ? turn.scored : ''}</td>
+        <td>${turn.player === 0 ? turn.toGo : ''}</td>
+        <td class="dart-count">${turn.dartCount}</td>
+        <td>${turn.player === 1 ? turn.toGo : ''}</td>
+        <td>${turn.player === 1 ? turn.scored : ''}</td>
+      `;
+      row.addEventListener('click', () => openEditModal(realIdx));
+      tbody.appendChild(row);
+    });
+  }
+  
+  // Keypad input
+  function pressNum(n) {
+    if (inputValue.length < 3) {
+      inputValue += n;
+      $('scoreDisplay').textContent = inputValue;
+    }
+  }
+  
+  function backspace() {
+    inputValue = inputValue.slice(0, -1);
+    $('scoreDisplay').textContent = inputValue;
+  }
+  
+  function clearInput() {
+    inputValue = '';
+    $('scoreDisplay').textContent = '';
+  }
+  
+  // Submit score
+  function submitScore() {
+    if (!inputValue || !match) return;
+    
+    const value = parseInt(inputValue, 10);
+    
+    if (value > MAX_SCORE) {
+      alert(`Maximum score per turn is ${MAX_SCORE}`);
       clearInput();
       return;
     }
     
-    const idx = game.turn;
-    const before = game.scores[idx];
+    const idx = match.turn;
+    const before = match.scores[idx];
     const after = before - value;
-
-    game.history.push({ scores: [...game.scores], turn: game.turn, log: [...game.log] });
-
-    if(after < 0 || after === 1){
-      game.log.push(`${game.players[idx]} bust (${value}) - score remains ${before}`);
-    } else if(after === 0){
-      if(!VALID_DOUBLES.includes(value % 100 <= 50 ? value : value % 100)){
-        const confirmDouble = confirm(`Score of ${value} - did you finish on a double? (Cancel if not)`);
-        if(!confirmDouble){
-          game.log.push(`${game.players[idx]} bust (${value}) - must finish on a double`);
-          game.history.pop();
-          game.turn = game.turn === 0 ? 1 : 0;
-          clearInput();
-          updateScores();
+    
+    // Track first 9 darts
+    if (match.first9Scores[idx].length < 3) {
+      match.first9Scores[idx].push(value);
+    }
+    
+    // Track high scores for stats
+    const year = match.year;
+    const playerStats = stats[match.players[idx]][year];
+    
+    if (value >= 180) playerStats.scores180++;
+    else if (value >= 140) playerStats.scores140++;
+    else if (value >= 100) playerStats.scores100++;
+    
+    playerStats.totalScore += value;
+    playerStats.totalThrows++;
+    
+    if (after < 0 || after === 1) {
+      // Bust
+      match.history.push({
+        player: idx,
+        scored: value + ' (BUST)',
+        toGo: before,
+        dartCount: match.dartCount + 3,
+        actualScore: 0
+      });
+      match.dartCount += 3;
+      match.turn = match.turn === 0 ? 1 : 0;
+      clearInput();
+      updateMatchDisplay();
+      return;
+    }
+    
+    if (after === 0) {
+      // Checkout - ask which dart
+      pendingCheckout = { value, idx, before };
+      showModal('checkoutModal');
+      return;
+    }
+    
+    // Normal score
+    match.scores[idx] = after;
+    match.history.push({
+      player: idx,
+      scored: value,
+      toGo: after,
+      dartCount: match.dartCount + 3,
+      actualScore: value
+    });
+    match.dartCount += 3;
+    match.turn = match.turn === 0 ? 1 : 0;
+    
+    clearInput();
+    updateMatchDisplay();
+    saveStats();
+  }
+  
+  // Complete checkout
+  function completeCheckout(dartNumber) {
+    if (!pendingCheckout || !match) return;
+    
+    const { value, idx, before } = pendingCheckout;
+    const dartsUsed = dartNumber;
+    const totalDarts = match.dartCount + dartsUsed;
+    
+    // Update stats
+    const year = match.year;
+    const playerStats = stats[match.players[idx]][year];
+    
+    // High out
+    if (value > playerStats.highOut) {
+      playerStats.highOut = value;
+    }
+    
+    // Best/worst leg (darts to finish)
+    if (playerStats.bestLeg === null || totalDarts < playerStats.bestLeg) {
+      playerStats.bestLeg = totalDarts;
+    }
+    if (playerStats.worstLeg === null || totalDarts > playerStats.worstLeg) {
+      playerStats.worstLeg = totalDarts;
+    }
+    
+    // First 9 average
+    const first9 = match.first9Scores[idx];
+    if (first9.length > 0) {
+      const first9Avg = first9.reduce((a, b) => a + b, 0) / first9.length * 3;
+      playerStats.first9Total += first9Avg;
+      playerStats.first9Count++;
+    }
+    
+    playerStats.totalDarts += totalDarts;
+    playerStats.totalLegsForAvg++;
+    playerStats.legsWon++;
+    playerStats.legsPlayed++;
+    
+    // Update opponent's legs played
+    const opponentIdx = idx === 0 ? 1 : 0;
+    stats[match.players[opponentIdx]][year].legsPlayed++;
+    
+    match.scores[idx] = 0;
+    match.history.push({
+      player: idx,
+      scored: value + ' (OUT)',
+      toGo: 0,
+      dartCount: totalDarts,
+      actualScore: value,
+      checkout: true,
+      checkoutDart: dartNumber
+    });
+    
+    match.legScores[idx]++;
+    
+    hideModal('checkoutModal');
+    pendingCheckout = null;
+    clearInput();
+    
+    // Check for set/match win
+    checkWinCondition(idx);
+    
+    saveStats();
+  }
+  
+  // Check win condition
+  function checkWinCondition(winnerIdx) {
+    const winner = match.players[winnerIdx];
+    const year = match.year;
+    
+    if (match.matchFormat === 'sets') {
+      // Check if set is won
+      if (match.legScores[winnerIdx] >= 3) {
+        match.setScores[winnerIdx]++;
+        stats[winner][year].setsWon++;
+        stats[winner][year].setsPlayed++;
+        stats[match.players[winnerIdx === 0 ? 1 : 0]][year].setsPlayed++;
+        
+        // Check if match is won
+        if (match.setScores[winnerIdx] >= match.setsToWin) {
+          $('matchWonMessage').textContent = `${winner} wins the match ${match.setScores[0]} - ${match.setScores[1]} sets!`;
+          showModal('matchWonModal');
+          updateMatchDisplay();
           return;
         }
+        
+        // Reset legs for new set
+        match.legScores = [0, 0];
+        $('legWonMessage').textContent = `${winner} wins the set! Score: ${match.setScores[0]} - ${match.setScores[1]}`;
+        showModal('legWonModal');
+        resetLeg();
+        return;
       }
-      clearInput();
-      showCheckoutModal(value, idx);
-      return;
     } else {
-      game.scores[idx] = after;
-      game.log.push(`${game.players[idx]} scored ${value} (${before} -> ${after})`);
+      // Best of legs
+      if (match.legScores[winnerIdx] >= match.legsToWin) {
+        $('matchWonMessage').textContent = `${winner} wins the match ${match.legScores[0]} - ${match.legScores[1]} legs!`;
+        showModal('matchWonModal');
+        updateMatchDisplay();
+        return;
+      }
     }
-
-    game.turn = game.turn === 0 ? 1 : 0;
-    clearInput();
-    updateScores();
+    
+    // Leg won but match continues
+    $('legWonMessage').textContent = `${winner} wins the leg! Score: ${match.legScores[0]} - ${match.legScores[1]}`;
+    showModal('legWonModal');
+    resetLeg();
   }
-
-  function undoLastScore(){
-    if(!game || !game.history || game.history.length === 0){
-      alert('Nothing to undo');
+  
+  // Reset leg
+  function resetLeg() {
+    match.scores = [match.startScore, match.startScore];
+    match.dartCount = 0;
+    match.history = [];
+    match.first9Scores = [[], []];
+    // Alternate who starts
+    match.turn = (match.legScores[0] + match.legScores[1] + match.setScores[0] + match.setScores[1]) % 2;
+    updateMatchDisplay();
+  }
+  
+  // Edit score modal
+  function openEditModal(turnIndex) {
+    const turn = match.history[turnIndex];
+    if (!turn || turn.checkout) return; // Can't edit checkouts
+    
+    editingTurn = turnIndex;
+    $('editScoreInput').value = turn.actualScore || 0;
+    showModal('editModal');
+  }
+  
+  function saveEdit() {
+    if (editingTurn === null) return;
+    
+    const newScore = parseInt($('editScoreInput').value, 10);
+    if (isNaN(newScore) || newScore < 0 || newScore > MAX_SCORE) {
+      alert('Invalid score');
       return;
     }
-    const lastState = game.history.pop();
-    game.scores = lastState.scores;
-    game.turn = lastState.turn;
-    game.log = lastState.log;
-    game.log.push('-- Last turn undone --');
-    clearInput();
-    updateScores();
+    
+    // Recalculate from edit point
+    const turn = match.history[editingTurn];
+    const oldScore = turn.actualScore || 0;
+    const diff = newScore - oldScore;
+    
+    turn.actualScore = newScore;
+    turn.scored = newScore;
+    
+    // Recalculate all subsequent scores
+    let runningScores = [match.startScore, match.startScore];
+    
+    for (let i = 0; i < match.history.length; i++) {
+      const t = match.history[i];
+      if (t.actualScore !== undefined) {
+        runningScores[t.player] -= t.actualScore;
+        t.toGo = runningScores[t.player];
+      }
+    }
+    
+    match.scores = runningScores;
+    
+    hideModal('editModal');
+    editingTurn = null;
+    updateMatchDisplay();
   }
-
-  function endMatch(){ game=null; showPage('home'); }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    loadPlayers(); renderPlayers();
-    qs('addPlayerBtn').addEventListener('click', addPlayer);
-    qs('startBtn').addEventListener('click', startGame);
-    qs('clrBtn').addEventListener('click', clearInput);
-    qs('enterBtn').addEventListener('click', submitScore);
-    qs('undoBtn').addEventListener('click', undoLastScore);
-    qs('endBtn').addEventListener('click', endMatch);
-    document.querySelectorAll('[data-num]').forEach(b=>b.addEventListener('click', ()=>pressNum(b.dataset.num)));
+  
+  // View stats
+  function viewStats(playerName) {
+    statsViewPlayer = playerName;
+    statsViewYear = new Date().getFullYear();
+    $('statsPlayerName').textContent = `${playerName} - Stats`;
+    renderStats();
+    showPage('statsPage');
+  }
+  
+  function renderStats() {
+    $('statsYear').textContent = statsViewYear;
     
-    qs('dart1Btn').addEventListener('click', ()=>completeCheckout(1));
-    qs('dart2Btn').addEventListener('click', ()=>completeCheckout(2));
-    qs('dart3Btn').addEventListener('click', ()=>completeCheckout(3));
+    const playerStats = stats[statsViewPlayer] && stats[statsViewPlayer][statsViewYear];
     
-    qs('checkoutModal').addEventListener('click', function(e){
-      if(e.target === this) hideCheckoutModal();
+    if (!playerStats) {
+      $('statSets').textContent = '0 / 0 (0%)';
+      $('statLegs').textContent = '0 / 0 (0%)';
+      $('stat100').textContent = '0';
+      $('stat140').textContent = '0';
+      $('stat180').textContent = '0';
+      $('statHighOut').textContent = '0';
+      $('statBestLeg').textContent = '-';
+      $('statWorstLeg').textContent = '-';
+      $('statAvgDarts').textContent = '0';
+      $('statAvgScore').textContent = '0';
+      $('statFirst9').textContent = '0';
+      return;
+    }
+    
+    const setsPercent = playerStats.setsPlayed > 0 ? ((playerStats.setsWon / playerStats.setsPlayed) * 100).toFixed(1) : 0;
+    const legsPercent = playerStats.legsPlayed > 0 ? ((playerStats.legsWon / playerStats.legsPlayed) * 100).toFixed(1) : 0;
+    const avgDarts = playerStats.totalLegsForAvg > 0 ? (playerStats.totalDarts / playerStats.totalLegsForAvg).toFixed(2) : 0;
+    const avgScore = playerStats.totalThrows > 0 ? ((playerStats.totalScore / playerStats.totalThrows) * 3).toFixed(2) : 0;
+    const first9Avg = playerStats.first9Count > 0 ? (playerStats.first9Total / playerStats.first9Count).toFixed(2) : 0;
+    
+    $('statSets').textContent = `${playerStats.setsWon} / ${playerStats.setsPlayed} (${setsPercent}%)`;
+    $('statLegs').textContent = `${playerStats.legsWon} / ${playerStats.legsPlayed} (${legsPercent}%)`;
+    $('stat100').textContent = playerStats.scores100;
+    $('stat140').textContent = playerStats.scores140;
+    $('stat180').textContent = playerStats.scores180;
+    $('statHighOut').textContent = playerStats.highOut;
+    $('statBestLeg').textContent = playerStats.bestLeg || '-';
+    $('statWorstLeg').textContent = playerStats.worstLeg || '-';
+    $('statAvgDarts').textContent = avgDarts;
+    $('statAvgScore').textContent = avgScore;
+    $('statFirst9').textContent = first9Avg;
+  }
+  
+  // Webcam functions
+  async function toggleWebcams() {
+    const container = $('webcamContainer');
+    const btn = $('toggleWebcamBtn');
+    
+    if (webcamsEnabled) {
+      // Disable webcams
+      mediaStreams.forEach(stream => {
+        stream.getTracks().forEach(track => track.stop());
+      });
+      mediaStreams = [];
+      $('webcam1').srcObject = null;
+      $('webcam2').srcObject = null;
+      container.style.display = 'none';
+      btn.textContent = 'Enable Webcams';
+      webcamsEnabled = false;
+    } else {
+      // Enable webcams
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        
+        if (videoDevices.length === 0) {
+          alert('No webcams found');
+          return;
+        }
+        
+        // Get first webcam
+        const stream1 = await navigator.mediaDevices.getUserMedia({ 
+          video: { deviceId: videoDevices[0].deviceId } 
+        });
+        $('webcam1').srcObject = stream1;
+        mediaStreams.push(stream1);
+        
+        // Get second webcam if available
+        if (videoDevices.length > 1) {
+          const stream2 = await navigator.mediaDevices.getUserMedia({ 
+            video: { deviceId: videoDevices[1].deviceId } 
+          });
+          $('webcam2').srcObject = stream2;
+          mediaStreams.push(stream2);
+        }
+        
+        container.style.display = 'flex';
+        btn.textContent = 'Disable Webcams';
+        webcamsEnabled = true;
+      } catch (err) {
+        alert('Could not access webcam: ' + err.message);
+      }
+    }
+  }
+  
+  // End match
+  function endMatch() {
+    if (webcamsEnabled) {
+      mediaStreams.forEach(stream => {
+        stream.getTracks().forEach(track => track.stop());
+      });
+      mediaStreams = [];
+      webcamsEnabled = false;
+    }
+    match = null;
+    clearInput();
+    showPage('homePage');
+  }
+  
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+    renderPlayers();
+    
+    // Home page
+    $('addPlayerBtn').addEventListener('click', addPlayer);
+    $('newPlayerInput').addEventListener('keypress', e => { if (e.key === 'Enter') addPlayer(); });
+    $('startMatchBtn').addEventListener('click', startMatch);
+    
+    // Player list delegation
+    $('playerList').addEventListener('click', function(e) {
+      if (e.target.classList.contains('delete-player-btn')) {
+        deletePlayer(parseInt(e.target.dataset.index, 10));
+      } else if (e.target.classList.contains('view-stats-btn')) {
+        viewStats(e.target.dataset.player);
+      }
+    });
+    
+    // Match page
+    document.querySelectorAll('[data-num]').forEach(btn => {
+      btn.addEventListener('click', () => pressNum(btn.dataset.num));
+    });
+    $('backspaceBtn').addEventListener('click', backspace);
+    $('enterBtn').addEventListener('click', submitScore);
+    
+    $('newLegBtn').addEventListener('click', () => {
+      if (match && confirm('Start a new leg? Current progress will be lost.')) {
+        resetLeg();
+      }
+    });
+    
+    $('finishBtn').addEventListener('click', () => {
+      if (match && match.scores[match.turn] <= 170) {
+        alert('Enter your checkout score using the keypad');
+      }
+    });
+    
+    $('statsBtn').addEventListener('click', () => {
+      if (match) viewStats(match.players[match.turn]);
+    });
+    
+    $('menuBtn').addEventListener('click', () => showModal('menuModal'));
+    $('closeMenuBtn').addEventListener('click', () => hideModal('menuModal'));
+    $('homeBtn').addEventListener('click', () => {
+      hideModal('menuModal');
+      if (confirm('Return to home? Match progress will be lost.')) {
+        endMatch();
+      }
+    });
+    $('cancelMatchBtn').addEventListener('click', () => {
+      hideModal('menuModal');
+      if (confirm('Cancel match? All progress will be lost.')) {
+        endMatch();
+      }
+    });
+    
+    $('toggleWebcamBtn').addEventListener('click', toggleWebcams);
+    
+    // Checkout modal
+    $('dart1Btn').addEventListener('click', () => completeCheckout(1));
+    $('dart2Btn').addEventListener('click', () => completeCheckout(2));
+    $('dart3Btn').addEventListener('click', () => completeCheckout(3));
+    
+    // Edit modal
+    $('saveEditBtn').addEventListener('click', saveEdit);
+    $('cancelEditBtn').addEventListener('click', () => {
+      hideModal('editModal');
+      editingTurn = null;
+    });
+    
+    // Leg won modal
+    $('continueLegBtn').addEventListener('click', () => {
+      hideModal('legWonModal');
+      updateMatchDisplay();
+    });
+    
+    // Match won modal
+    $('newMatchBtn').addEventListener('click', () => {
+      hideModal('matchWonModal');
+      endMatch();
+    });
+    
+    // Stats page
+    $('backFromStatsBtn').addEventListener('click', () => {
+      if (match) {
+        showPage('matchPage');
+      } else {
+        showPage('homePage');
+      }
+    });
+    
+    $('prevYearBtn').addEventListener('click', () => {
+      statsViewYear--;
+      renderStats();
+    });
+    
+    $('nextYearBtn').addEventListener('click', () => {
+      statsViewYear++;
+      renderStats();
+    });
+    
+    // Keyboard support
+    document.addEventListener('keydown', function(e) {
+      if (document.querySelector('.modal.active')) return;
+      if (document.activeElement.tagName === 'INPUT') return;
+      
+      if ($('matchPage').classList.contains('active')) {
+        if (e.key >= '0' && e.key <= '9') {
+          pressNum(e.key);
+        } else if (e.key === 'Backspace') {
+          backspace();
+        } else if (e.key === 'Enter') {
+          submitScore();
+        }
+      }
     });
   });
 })();
 </script>
+
 </body>
 </html>
