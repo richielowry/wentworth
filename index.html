@@ -12,6 +12,7 @@
     select, input, button { font-size:1.1rem; padding:0.6rem; margin:0.4rem 0; width:100%; }
     button { background:#2ecc71; border:none; color:#000; font-weight:700; border-radius:8px; }
     .danger { background:#e74c3c; color:#fff; }
+    .secondary { background:#3498db; color:#fff; }
     .scoreboard { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem; }
     .player { width:50%; text-align:center; padding:0.5rem; border-radius:10px; }
     .player.inactive { opacity:0.35; }
@@ -21,6 +22,12 @@
     .log div { border-bottom:1px solid #333; padding:0.3rem 0; }
     .keypad { display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; }
     #scoreInput { grid-column:1 / -1; text-align:center; font-size:1.4rem; }
+    .checkout-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:100; }
+    .checkout-modal.active { display:flex; }
+    .checkout-content { background:#1e1e1e; padding:1.5rem; border-radius:10px; text-align:center; max-width:300px; width:90%; }
+    .checkout-content h3 { margin-top:0; }
+    .checkout-buttons { display:flex; gap:0.5rem; margin-top:1rem; }
+    .checkout-buttons button { flex:1; }
   </style>
 </head>
 <body>
@@ -29,184 +36,205 @@
 <!-- HOME -->
 <div id="home" class="page active">
   <h2>New Game</h2>
-  <label>Player 1</label>
-  <select id="player1"></select>
-  <label>Player 2</label>
-  <select id="player2"></select>
-  <label>Game</label>
-  <select id="gameType">
+  <label for="player1">Player 1</label>
+  <select id="player1" aria-label="Select Player 1"></select>
+  <label for="player2">Player 2</label>
+  <select id="player2" aria-label="Select Player 2"></select>
+  <label for="gameType">Game</label>
+  <select id="gameType" aria-label="Select Game Type">
     <option value="501">501</option>
     <option value="301">301</option>
   </select>
-  <button id="startBtn">Start Match</button>
+  <button id="startBtn" aria-label="Start Match">Start Match</button>
 
   <h2>Create Player</h2>
-  <input id="newPlayerName" placeholder="Player name" />
-  <button id="addPlayerBtn">Add Player</button>
+  <label for="newPlayerName">Player Name</label>
+  <input id="newPlayerName" placeholder="Player name" aria-label="Enter new player name" />
+  <button id="addPlayerBtn" aria-label="Add Player">Add Player</button>
 </div>
 
 <!-- MATCH -->
 <div id="match" class="page">
   <div class="scoreboard">
-    <div id="p1Box" class="player">
+    <div id="p1Box" class="player" role="region" aria-label="Player 1 score">
       <div id="p1Name"></div>
-      <div id="p1Score" class="score"></div>
+      <div id="p1Score" class="score" aria-live="polite"></div>
     </div>
-    <div id="p2Box" class="player">
+    <div id="p2Box" class="player" role="region" aria-label="Player 2 score">
       <div id="p2Name"></div>
-      <div id="p2Score" class="score"></div>
+      <div id="p2Score" class="score" aria-live="polite"></div>
     </div>
   </div>
 
-  <div class="log" id="turnLog"></div>
+  <div class="log" id="turnLog" role="log" aria-label="Turn history"></div>
 
-  <div class="keypad">
-    <input id="scoreInput" readonly placeholder="Enter score" />
-    <button data-num="1">1</button><button data-num="2">2</button><button data-num="3">3</button>
-    <button data-num="4">4</button><button data-num="5">5</button><button data-num="6">6</button>
-    <button data-num="7">7</button><button data-num="8">8</button><button data-num="9">9</button>
-    <button data-num="0">0</button><button id="clrBtn">CLR</button><button id="enterBtn">ENTER</button>
-    <button class="danger" id="endBtn">END</button>
+  <div class="keypad" role="group" aria-label="Score input keypad">
+    <input id="scoreInput" readonly placeholder="Enter score (max 180)" aria-label="Current score input" />
+    <button data-num="1" aria-label="1">1</button><button data-num="2" aria-label="2">2</button><button data-num="3" aria-label="3">3</button>
+    <button data-num="4" aria-label="4">4</button><button data-num="5" aria-label="5">5</button><button data-num="6" aria-label="6">6</button>
+    <button data-num="7" aria-label="7">7</button><button data-num="8" aria-label="8">8</button><button data-num="9" aria-label="9">9</button>
+    <button data-num="0" aria-label="0">0</button><button id="clrBtn" aria-label="Clear">CLR</button><button id="enterBtn" aria-label="Enter score">ENTER</button>
+    <button class="secondary" id="undoBtn" aria-label="Undo last score">UNDO</button>
+    <button class="danger" id="endBtn" aria-label="End match">END</button>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div id="checkoutModal" class="checkout-modal" role="dialog" aria-labelledby="checkoutTitle">
+  <div class="checkout-content">
+    <h3 id="checkoutTitle">Checkout! Which dart?</h3>
+    <p>Select which dart finished the leg:</p>
+    <div class="checkout-buttons">
+      <button id="dart1Btn">1st</button>
+      <button id="dart2Btn">2nd</button>
+      <button id="dart3Btn">3rd</button>
+    </div>
   </div>
 </div>
 
 <script>
 (function(){
   const STORAGE_KEY = 'dartsPlayers';
+  const MAX_SCORE_PER_TURN = 180;
+  const VALID_DOUBLES = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,50];
+  
   let players = [];
   let game = null;
   let inputValue = '';
-
-  function qs(id){ return document.getElementById(id); }
+  let pendingCheckout = null;
 
   function loadPlayers(){
     try {
       players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch {
-      players = [];
+    } catch(e){ players = []; }
+    
+    if(players.length === 0){
+      players = [{ name: 'Guest 1', stats:{} }, { name: 'Guest 2', stats:{} }];
+      savePlayers();
     }
   }
+  function savePlayers(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(players)); }
 
-  function savePlayers(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
-  }
+  function qs(id){ return document.getElementById(id); }
 
   function renderPlayers(){
     const p1 = qs('player1');
     const p2 = qs('player2');
-    p1.innerHTML = '';
-    p2.innerHTML = '';
-
-    players.forEach(p => {
-      const o1 = document.createElement('option');
-      const o2 = document.createElement('option');
-      o1.value = o2.value = p.name;
-      o1.textContent = o2.textContent = p.name;
-      p1.appendChild(o1);
-      p2.appendChild(o2);
+    p1.innerHTML = ''; p2.innerHTML = '';
+    players.forEach((p, index) => {
+      const o1 = document.createElement('option'); o1.value = p.name; o1.textContent = p.name;
+      const o2 = document.createElement('option'); o2.value = p.name; o2.textContent = p.name;
+      p1.appendChild(o1); p2.appendChild(o2);
     });
+    if(players.length > 1){
+      p2.selectedIndex = 1;
+    }
   }
 
   function addPlayer(){
     const input = qs('newPlayerName');
     const name = input.value.trim();
-
-    if(!name){
-      alert('Enter a player name');
-      return;
-    }
-
-    if(players.some(p => p.name.toLowerCase() === name.toLowerCase())){
-      alert('Player already exists');
-      return;
-    }
-
+    if(!name){ alert('Enter a player name'); return; }
+    if(players.some(p => p.name.toLowerCase() === name.toLowerCase())){ alert('Player already exists'); return; }
     players.push({ name, stats:{} });
     savePlayers();
     renderPlayers();
     input.value = '';
   }
 
-  function showPage(id){
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    qs(id).classList.add('active');
-  }
+  function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); qs(id).classList.add('active'); }
 
   function startGame(){
     const p1 = qs('player1').value;
     const p2 = qs('player2').value;
-    const start = parseInt(qs('gameType').value, 10);
-
-    if(!p1 || !p2 || p1 === p2){
-      alert('Select two different players');
-      return;
-    }
-
-    game = {
-      players: [p1, p2],
-      scores: [start, start],
-      turn: 0,
-      log: []
-    };
-
-    qs('p1Name').textContent = p1;
-    qs('p2Name').textContent = p2;
-
-    updateScores();
-    showPage('match');
+    const start = parseInt(qs('gameType').value,10);
+    if(!p1 || !p2 || p1===p2){ alert('Select two different players'); return; }
+    game = { players:[p1,p2], scores:[start,start], turn:0, log:[], history:[] };
+    qs('p1Name').textContent = p1; qs('p2Name').textContent = p2;
+    updateScores(); showPage('match');
   }
 
   function updateScores(){
-    qs('p1Score').textContent = game.scores[0];
-    qs('p2Score').textContent = game.scores[1];
-
-    qs('p1Box').classList.toggle('active', game.turn === 0);
-    qs('p1Box').classList.toggle('inactive', game.turn !== 0);
-    qs('p2Box').classList.toggle('active', game.turn === 1);
-    qs('p2Box').classList.toggle('inactive', game.turn !== 1);
-
+    qs('p1Score').textContent = game.scores[0]; qs('p2Score').textContent = game.scores[1];
+    qs('p1Box').classList.toggle('active', game.turn===0);
+    qs('p1Box').classList.toggle('inactive', game.turn!==0);
+    qs('p2Box').classList.toggle('active', game.turn===1);
+    qs('p2Box').classList.toggle('inactive', game.turn!==1);
     renderLog();
   }
 
   function renderLog(){
-    const log = qs('turnLog');
-    log.innerHTML = '';
-    game.log.slice().reverse().forEach(t => {
-      const d = document.createElement('div');
-      d.textContent = t;
-      log.appendChild(d);
-    });
+    const log = qs('turnLog'); log.innerHTML='';
+    game.log.slice().reverse().forEach(t=>{ const d=document.createElement('div'); d.textContent=t; log.appendChild(d); });
   }
 
-  function pressNum(n){
-    inputValue += n;
-    qs('scoreInput').value = inputValue;
+  function pressNum(n){ 
+    if(inputValue.length < 3){
+      inputValue += n; 
+      qs('scoreInput').value = inputValue; 
+    }
+  }
+  function clearInput(){ inputValue=''; qs('scoreInput').value=''; }
+
+  function showCheckoutModal(value, idx){
+    pendingCheckout = { value, idx };
+    qs('checkoutModal').classList.add('active');
   }
 
-  function clearInput(){
-    inputValue = '';
-    qs('scoreInput').value = '';
+  function hideCheckoutModal(){
+    qs('checkoutModal').classList.remove('active');
+    pendingCheckout = null;
+  }
+
+  function completeCheckout(dartNumber){
+    if(!pendingCheckout) return;
+    const { value, idx } = pendingCheckout;
+    
+    game.history.push({ scores: [...game.scores], turn: game.turn, log: [...game.log] });
+    game.scores[idx] = 0;
+    game.log.push(`${game.players[idx]} wins! Checkout on dart ${dartNumber} (scored ${value})`);
+    
+    hideCheckoutModal();
+    alert(`${game.players[idx]} wins the leg!`);
+    endMatch();
   }
 
   function submitScore(){
     if(!inputValue) return;
-
-    const value = parseInt(inputValue, 10);
+    const value = parseInt(inputValue,10);
+    
+    if(value > MAX_SCORE_PER_TURN){
+      alert(`Maximum score per turn is ${MAX_SCORE_PER_TURN}`);
+      clearInput();
+      return;
+    }
+    
     const idx = game.turn;
     const before = game.scores[idx];
     const after = before - value;
 
-    if(after < 0){
-      game.log.push(`${game.players[idx]} bust (${value})`);
+    game.history.push({ scores: [...game.scores], turn: game.turn, log: [...game.log] });
+
+    if(after < 0 || after === 1){
+      game.log.push(`${game.players[idx]} bust (${value}) - score remains ${before}`);
     } else if(after === 0){
-      const d = prompt('Checkout! Which dart? 1 / 2 / 3');
-      game.log.push(`${game.players[idx]} wins (checkout dart ${d})`);
-      alert(`${game.players[idx]} wins the leg!`);
-      endMatch();
+      if(!VALID_DOUBLES.includes(value % 100 <= 50 ? value : value % 100)){
+        const confirmDouble = confirm(`Score of ${value} - did you finish on a double? (Cancel if not)`);
+        if(!confirmDouble){
+          game.log.push(`${game.players[idx]} bust (${value}) - must finish on a double`);
+          game.history.pop();
+          game.turn = game.turn === 0 ? 1 : 0;
+          clearInput();
+          updateScores();
+          return;
+        }
+      }
+      clearInput();
+      showCheckoutModal(value, idx);
       return;
     } else {
       game.scores[idx] = after;
-      game.log.push(`${game.players[idx]} scored ${value}`);
+      game.log.push(`${game.players[idx]} scored ${value} (${before} -> ${after})`);
     }
 
     game.turn = game.turn === 0 ? 1 : 0;
@@ -214,24 +242,39 @@
     updateScores();
   }
 
-  function endMatch(){
-    game = null;
-    showPage('home');
+  function undoLastScore(){
+    if(!game || !game.history || game.history.length === 0){
+      alert('Nothing to undo');
+      return;
+    }
+    const lastState = game.history.pop();
+    game.scores = lastState.scores;
+    game.turn = lastState.turn;
+    game.log = lastState.log;
+    game.log.push('-- Last turn undone --');
+    clearInput();
+    updateScores();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    loadPlayers();
-    renderPlayers();
+  function endMatch(){ game=null; showPage('home'); }
 
+  document.addEventListener('DOMContentLoaded', function(){
+    loadPlayers(); renderPlayers();
     qs('addPlayerBtn').addEventListener('click', addPlayer);
     qs('startBtn').addEventListener('click', startGame);
     qs('clrBtn').addEventListener('click', clearInput);
     qs('enterBtn').addEventListener('click', submitScore);
+    qs('undoBtn').addEventListener('click', undoLastScore);
     qs('endBtn').addEventListener('click', endMatch);
-
-    document.querySelectorAll('[data-num]').forEach(b =>
-      b.addEventListener('click', () => pressNum(b.dataset.num))
-    );
+    document.querySelectorAll('[data-num]').forEach(b=>b.addEventListener('click', ()=>pressNum(b.dataset.num)));
+    
+    qs('dart1Btn').addEventListener('click', ()=>completeCheckout(1));
+    qs('dart2Btn').addEventListener('click', ()=>completeCheckout(2));
+    qs('dart3Btn').addEventListener('click', ()=>completeCheckout(3));
+    
+    qs('checkoutModal').addEventListener('click', function(e){
+      if(e.target === this) hideCheckoutModal();
+    });
   });
 })();
 </script>
